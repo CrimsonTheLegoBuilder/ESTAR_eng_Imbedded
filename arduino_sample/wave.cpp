@@ -16,9 +16,9 @@ void setup() {
 void loop() {
 
  /* //  colorWipe(strip.Color(R, G, B), Time);
-  colorWipe(strip.Color(151, 0, 0), 100);     // Red
-  colorWipe(strip.Color(101, 255, 25), 100);  // Green
-  colorWipe(strip.Color(0, 154, 138), 100);   // Blue
+  colorWipe(strip.Color(151, 0, 0), 100);      // Red
+  colorWipe(strip.Color(101, 255, 25), 100);   // Green
+  colorWipe(strip.Color(0, 154, 138), 100);    // Blue
   //colorWipe(strip.Color(255, 255, 255), 100); // White*/
 
 
