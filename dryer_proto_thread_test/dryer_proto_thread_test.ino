@@ -83,8 +83,8 @@ void TaskDhtRead(void *pvParameters) {
     // }
     xSemaphoreTake(xCountingSemaphore, portMAX_DELAY); 
     Serial.println("Inside Task1 and Serial monitor Resource Taken");
-    // Data humitmp = dht::check();
-    Data humitmp = { 10, 60 };
+    Data humitmp = dht::check();
+    // Data humitmp = { 10, 60 };
     tempValue = humitmp.temp;
     Serial.println(tempValue);
     int w = map(tempValue, 0, 80, 0, 255);

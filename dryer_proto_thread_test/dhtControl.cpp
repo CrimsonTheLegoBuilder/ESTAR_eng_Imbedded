@@ -13,9 +13,10 @@ void dht::init() {
 }
 
 Data dht::check(bool f) {
-  float h = dht11.readHumidity();
-  float t = dht11.readTemperature();
-  float tf = dht11.computeHeatIndex(t, h, false);
+  float h = 0, t = 0, tf = 0;
+  // h = dht11.readHumidity();
+  // t = dht11.readTemperature();
+  tf = dht11.computeHeatIndex(t, h, false);
   // Serial.print(h);
   // Serial.print(" ");
   // Serial.print(t);
