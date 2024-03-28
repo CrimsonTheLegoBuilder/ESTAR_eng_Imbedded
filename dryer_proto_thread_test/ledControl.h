@@ -1,4 +1,7 @@
-#include "Arduino.h"
+#ifndef _LED_CONTROL_H_
+#define _LED_CONTROL_H_
+
+#include <Arduino.h>
 
 #define RED 1
 #define ORANGE 2
@@ -15,5 +18,9 @@
 #define RGB_PIN 2
 extern int RGB_NUM;
 
-void RGB_init(int rgb_num);
-void LED_fixed(int color);
+namespace rgb {
+  void init(int rgb_num);
+  void fixed(int color);
+}
+
+#endif

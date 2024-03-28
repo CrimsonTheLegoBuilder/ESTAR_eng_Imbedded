@@ -29,6 +29,13 @@ PID::PID(ld kp, ld ki, ld kd, ld dt, ld lo, ld hi) : params(kp, ki, kd, dt, lo, 
   derivative = 0;
 }
 
+void PID::init(ld kp, ld ki, ld kd, ld dt, ld lo, ld hi) {
+  params = gain(kp, ki, kd, dt, lo, hi);
+  integral = 0;
+  prev_err = 0;
+  derivative = 0;
+}
+
 ld PID::pid_converter(ld output) {
   ld Coef = 1.0;
   return output * Coef;

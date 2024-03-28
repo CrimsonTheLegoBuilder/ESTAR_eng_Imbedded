@@ -19,7 +19,8 @@ public:
   ld prev_err;
   ld derivative;
 
-  PID(ld kp, ld ki, ld kd, ld dt, ld lo, ld hi = 70);
+  PID(ld kp = 2., ld ki = .1, ld kd = .01, ld dt = 1e-4, ld lo = 20., ld hi = 70.);
+  void init(ld kp = 2., ld ki = .1, ld kd = .01, ld dt = 1e-4, ld lo = 20., ld hi = 70.);
   ld pid_converter(ld output);
   ld pid_control(ld setpoint, ld pv);
   void DEBUG();
