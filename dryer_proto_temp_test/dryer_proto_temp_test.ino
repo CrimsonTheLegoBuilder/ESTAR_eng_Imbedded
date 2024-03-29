@@ -43,7 +43,7 @@ void setup() {
   xTaskCreate(
     TaskDhtRead,
     "DhtRead",
-    256,
+    128,
     NULL,
     0,
     NULL
@@ -54,7 +54,7 @@ void setup() {
     "PidControll",
     128,
     NULL,
-    1,
+    0,
     NULL
   );
 
@@ -83,7 +83,7 @@ void TaskDhtRead(void *pvParameters) {
     // }
     xSemaphoreTake(xCountingSemaphore, portMAX_DELAY); 
     Serial.println("Inside Task1 and Serial monitor Resource Taken");
-    vTaskDelay(10);
+    // vTaskDelay(100);
     Data humitmp = dht::check();
     // Data humitmp = { 10, 60 };
     tempValue = humitmp.temp;
@@ -94,7 +94,7 @@ void TaskDhtRead(void *pvParameters) {
     // analogWrite(ledPin, 200);
     digitalWrite(LED_BUILTIN, HIGH);
     xSemaphoreGive(xCountingSemaphore);
-    vTaskDelay(200);
+    vTaskDelay(2000);
   }
 }
 
@@ -109,7 +109,7 @@ void TaskPidControll(void *pvParameters) {
     Serial.println("Inside Task2 and Serial monitor Resource Taken");
     digitalWrite(LED_BUILTIN, LOW);
     xSemaphoreGive(xCountingSemaphore);
-    vTaskDelay(200);
+    vTaskDelay(2000);
   }
 }
 
