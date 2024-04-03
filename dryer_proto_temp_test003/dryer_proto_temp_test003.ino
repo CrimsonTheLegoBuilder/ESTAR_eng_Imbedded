@@ -1,11 +1,9 @@
-#include <Arduino.h>
-#include <stdio.h>
-#include <math.h>
 // #include <SoftwareSerial.h>
 // #include "_config.h"
-// #include "ledControl.h"
-// #include "dhtControl.h"
-// #include "pidControl.h"
+#include "ledControl.h"
+#include "dhtControl.h"
+#include "pidControl.h"
+#include "ssrControl.h"
 
 #include <Arduino_FreeRTOS.h>
 #include <semphr.h>
@@ -29,7 +27,7 @@ Default config::
 int ledPin = 11;
 extern int color;
 float setPoint = 0, tempValue = 0, humiValue = 0;
-// PID temper_pid = PID();
+PID temper_pid = PID();
 
 SemaphoreHandle_t xSemaphore = NULL;
 // SemaphoreHandle_t xCountingSemaphore;
@@ -42,17 +40,19 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(ledPin, OUTPUT);
 
-  // dht::init();
+  dht::init();
   // humidity & temper sensor config
 
   // rgb::init(47);
   // // led strip length config
 
-  // temper_pid.init(.2, .1, .05, 1e-4, .0);
+  ssr::init(8, 9, 10);
+
+  temper_pid.init(.2, .1, .05, 1e-4, .0);
   // // pid parameters setting
   // // pid.init(Kp, Ki, Kd, dt, low_limit, high_limit);
   // // high_limit's default value = 70.0'C
-  // setPoint = 50.0;
+  setPoint = 50.0;
 
   // xSemaphore = xSemaphoreCreateMutex();
   // if (xSemaphore != NULL) {
@@ -77,7 +77,7 @@ void setup() {
     "PidControll",
     400,
     NULL,
-    2,
+    0,
     NULL
   );
 
@@ -94,28 +94,50 @@ void loop() {
 
 void TaskDhtRead(void *pvParameters __attribute__((unused)) ) {
   // (void) pvParameters;
+  TickType_t xLastWakeTime;
+  const TickType_t xFreq = pdMS_TO_TICKS(2000);
+  xLastWakeTime = xTaskGetTickCount();
   for (;;) {
-    if (xSemaphoreTake(xSemaphore, (TickType_t)5) == pdTRUE) {
-      Serial.println("Inside Task1 and Serial monitor Resource Taken");
+    TickType_t xS, xE, xExc;
+    xS = xTaskGetTickCount();
+    if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
+      //Serial.println("Inside Task1 and Serial monitor Resource Taken");
       // Data humitmp = dht::check();
       // tempValue = humitmp.temp;
       bool f = dht_sensor.measure(&tempValue, &humiValue);
       Serial.println(tempValue);
       xSemaphoreGive(xSemaphore);
     }
-    vTaskDelay(15);
+    xE = xTaskGetTickCount();
+    xExc = xE - xS;
+    // if (xExc < xFreq) vTaskDelayUntil(&xLastWakeTime, xFreq - xExc);
+    // else xLastWakeTime = xE;
+    vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(2000));
+    //vTaskDelay(15);
   }
 }
 
 void TaskPidControll(void *pvParameters __attribute__((unused)) ) {
   // (void) pvParameters;
+  TickType_t xLastWakeTime;
+  const TickType_t xFreq = pdMS_TO_TICKS(2000);
+  xLastWakeTime = xTaskGetTickCount();
   for (;;) {
-    if (xSemaphoreTake(xSemaphore, (TickType_t)5) == pdTRUE) {
-      Serial.println("Inside Task2 and Serial monitor Resource Taken");
+    TickType_t xS, xE, xExc;
+    if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
+      //Serial.println("Inside Task2 and Serial monitor Resource Taken");
+      float t = temper_pid.pid_control(setPoint, tempValue);
       // Serial.println(temper_pid.pid_control(setPoint, tempValue));
+      // bool f = dht_sensor.measure(&tempValue, &humiValue);
+      Serial.println(t);
       xSemaphoreGive(xSemaphore);
     }
-    vTaskDelay(15);
+    xE = xTaskGetTickCount();
+    xExc = xE - xS;
+    // if (xExc < xFreq) vTaskDelayUntil(&xLastWakeTime, xFreq - xExc);
+    // else xLastWakeTime = xE;
+    vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(2000));
+    //vTaskDelay(15);
   }
 }
 

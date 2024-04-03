@@ -49,7 +49,7 @@ void setup() {
   xTaskCreate(
     TaskAnalogRead
     ,  "AnalogRead" // A name just for humans
-    ,  128  // Stack size
+    ,  512  // Stack size
     ,  NULL //Parameters for the task
     ,  0  // Priority
     ,  NULL ); //Task Handle
@@ -99,7 +99,7 @@ void TaskDigitalRead( void *pvParameters __attribute__((unused)) )  // This is a
       xSemaphoreGive( xSerialSemaphore ); // Now free or "Give" the Serial Port for others.
     }
 
-    vTaskDelay(1);  // one tick delay (15ms) in between reads for stability
+    vTaskDelay(10);  // one tick delay (15ms) in between reads for stability
   }
 }
 
@@ -128,6 +128,6 @@ void TaskAnalogRead( void *pvParameters __attribute__((unused)) )  // This is a 
       xSemaphoreGive( xSerialSemaphore ); // Now free or "Give" the Serial Port for others.
     }
 
-    vTaskDelay(150);  // one tick delay (15ms) in between reads for stability
+    vTaskDelay(10);  // one tick delay (15ms) in between reads for stability
   }
 }
