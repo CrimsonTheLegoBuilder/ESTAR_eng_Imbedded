@@ -25,6 +25,7 @@ void rgb::fixed(int color) {
     else leds[i] = CRGB(255, 255, 255);
   }
   FastLED.show();
+  delay(100);
   return;
 }
 

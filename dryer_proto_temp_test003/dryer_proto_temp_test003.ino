@@ -24,35 +24,49 @@ Default config::
 
 */
 
+extern int __bss_end;
+extern void *__brkval;
+
+int memoryPrint() {
+  int freeMemory;
+  if ((int)__brkval == 0) freeMemory = ((int)&freeMemory) - ((int)&__bss_end);
+  else freeMemory = ((int)&freeMemory) - ((int)&__brkval);
+  return freeMemory;
+}
+
+
 int ledPin = 11;
 extern int color;
 float setPoint = 0, tempValue = 0, humiValue = 0;
 PID temper_pid = PID();
+bool t_valid = 0;
 
 SemaphoreHandle_t xSemaphore = NULL;
 // SemaphoreHandle_t xCountingSemaphore;
 
 // void TaskDhtRead(void *pvParameters);
 // void TaskPidControll(void *pvParameters);
-
 void setup() {
   Serial.begin(9600);
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(ledPin, OUTPUT);
 
   dht::init();
+  // delay(5);
   // humidity & temper sensor config
-
-  // rgb::init(47);
-  // // led strip length config
+  rgb::init(50);
+  //delay(50);
+  // led strip length config
 
   ssr::init(8, 9, 10);
 
-  temper_pid.init(.2, .1, .05, 1e-4, .0);
+  temper_pid.init(.2, .1, .0005, 1e-4, .0);
   // // pid parameters setting
   // // pid.init(Kp, Ki, Kd, dt, low_limit, high_limit);
   // // high_limit's default value = 70.0'C
   setPoint = 50.0;
+
+  t_valid = 0;
 
   // xSemaphore = xSemaphoreCreateMutex();
   // if (xSemaphore != NULL) {
@@ -62,25 +76,45 @@ void setup() {
     xSemaphore = xSemaphoreCreateMutex();  // Create a mutex semaphore we will use to manage the Serial Port
     if ( ( xSemaphore ) != NULL ) xSemaphoreGive( ( xSemaphore ) );  // Make the Serial Port available for use, by "Giving" the Semaphore.
   }
-
-  xTaskCreate(
+  Serial.println("fuck");
+  Serial.println(xTaskCreate(
     TaskDhtRead,
     "DhtRead",
-    400,
+    350,
     NULL,
-    0,
+    2,
     NULL
-  );
+  ));
 
-  xTaskCreate(
+  Serial.println(xTaskCreate(
     TaskPidControll,
     "PidControll",
-    400,
+    200,
+    NULL,
+    1,
+    NULL
+  ));
+
+  Serial.println(xTaskCreate(
+    TaskRgbControll,
+    "RgbControll",
+    150,
     NULL,
     0,
     NULL
-  );
+  ));
 
+  Serial.println(xTaskCreate(
+    TaskSsrControll,
+    "SsrControll",
+    250,
+    NULL,
+    3,
+    NULL
+  ));
+
+  Serial.println("fuck");
+  Serial.println(memoryPrint());
   // vTaskStartScheduler();
   // xCountingSemaphore = xSemaphoreCreateCounting(1,1);
   // xSemaphoreGive(xCountingSemaphore);
@@ -104,8 +138,12 @@ void TaskDhtRead(void *pvParameters __attribute__((unused)) ) {
       //Serial.println("Inside Task1 and Serial monitor Resource Taken");
       // Data humitmp = dht::check();
       // tempValue = humitmp.temp;
-      bool f = dht_sensor.measure(&tempValue, &humiValue);
+      t_valid = dht_sensor.measure(&tempValue, &humiValue);
+      Serial.print("t_valid : ");
+      Serial.println(t_valid);
+      Serial.print("tempValue : ");
       Serial.println(tempValue);
+      Serial.println(memoryPrint());
       xSemaphoreGive(xSemaphore);
     }
     xE = xTaskGetTickCount();
@@ -126,10 +164,13 @@ void TaskPidControll(void *pvParameters __attribute__((unused)) ) {
     TickType_t xS, xE, xExc;
     if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
       //Serial.println("Inside Task2 and Serial monitor Resource Taken");
-      float t = temper_pid.pid_control(setPoint, tempValue);
-      // Serial.println(temper_pid.pid_control(setPoint, tempValue));
-      // bool f = dht_sensor.measure(&tempValue, &humiValue);
-      Serial.println(t);
+      if (t_valid) {
+        float t = temper_pid.pid_control(setPoint, tempValue);
+        // Serial.println(temper_pid.pid_control(setPoint, tempValue));
+        // bool f = dht_sensor.measure(&tempValue, &humiValue);
+        Serial.println(t);
+      }
+      Serial.println(memoryPrint());
       xSemaphoreGive(xSemaphore);
     }
     xE = xTaskGetTickCount();
@@ -138,6 +179,38 @@ void TaskPidControll(void *pvParameters __attribute__((unused)) ) {
     // else xLastWakeTime = xE;
     vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(2000));
     //vTaskDelay(15);
+  }
+}
+
+int col = 1;
+void TaskRgbControll(void *pvParameters __attribute__((unused)) ) {
+  // (void) pvParameters;
+  TickType_t xLastWakeTime;
+  const TickType_t xFreq = pdMS_TO_TICKS(100);
+  xLastWakeTime = xTaskGetTickCount();
+  for (;;) {
+    col = (col + 1) % 6;
+    if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
+      //Serial.println("Inside Task3 and Serial monitor Resource Taken");
+      rgb::fixed(col);
+      xSemaphoreGive(xSemaphore);
+    }
+    vTaskDelayUntil(&xLastWakeTime, xFreq);
+  }
+}
+
+void TaskSsrControll(void *pvParameters __attribute__((unused)) ) {
+  // (void) pvParameters;
+  TickType_t xLastWakeTime;
+  const TickType_t xFreq = pdMS_TO_TICKS(500);
+  xLastWakeTime = xTaskGetTickCount();
+  for (;;) {
+    if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
+      ssr::fan_control(50);
+      ssr::ptc_control(50);
+      xSemaphoreGive(xSemaphore);
+    }
+    vTaskDelayUntil(&xLastWakeTime, xFreq);
   }
 }
 
