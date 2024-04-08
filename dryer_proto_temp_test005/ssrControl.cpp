@@ -1,3 +1,4 @@
+#include "Arduino.h"
 #ifndef _SSR_SOURCE_
 #define _SSR_SOURCE_
 

@@ -2,10 +2,7 @@
 #define _PID_H_
 
 #include <Arduino.h>
-#include <math.h>
-
-typedef long long ll;
-typedef double ld;
+#include "_config.h"
 
 ld heat(ld x[], ld t, ld Q);
 

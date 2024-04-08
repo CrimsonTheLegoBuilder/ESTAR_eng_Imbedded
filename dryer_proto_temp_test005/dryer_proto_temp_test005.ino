@@ -1,9 +1,9 @@
 // #include <SoftwareSerial.h>
+// #include "_config.h"
 #include "ledControl.h"
 #include "dhtControl.h"
 #include "pidControl.h"
 #include "ssrControl.h"
-#include "dwinControl.h"
 
 #include <Arduino_FreeRTOS.h>
 #include <semphr.h>
@@ -187,7 +187,7 @@ void TaskPidControll(void *pvParameters __attribute__((unused)) ) {
 void TaskRgbControll(void *pvParameters __attribute__((unused)) ) {
   // (void) pvParameters;
   TickType_t xLastWakeTime;
-  const TickType_t xFreq = pdMS_TO_TICKS(200);
+  const TickType_t xFreq = pdMS_TO_TICKS(500);
   xLastWakeTime = xTaskGetTickCount();
   int col = 1;
   for (;;) {

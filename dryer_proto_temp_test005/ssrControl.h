@@ -2,10 +2,7 @@
 #define _SSR_H_
 
 #include <Arduino.h>
-#include <math.h>
-
-typedef long long ll;
-typedef double ld;
+#include "_config.h" 
 
 namespace ssr {
   void init(int heatpump_, int ptc_, int fan_);
