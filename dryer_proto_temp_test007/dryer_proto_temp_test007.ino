@@ -35,7 +35,7 @@ void setup() {
   Serial.begin(9600);
 
   dht::init();
-
+  dwin::setup();
   t_valid = 0;
 
   if ( xSemaphore == NULL ) { // Check to confirm that the Serial Semaphore has not already been created.
@@ -55,11 +55,20 @@ void setup() {
   ));
 
   Serial.println(xTaskCreate(
-    TaskDwinControll,
-    "DwinRead",
+    TaskDwinWrite,
+    "DwinWrite",
     350,
     NULL,
     2,
+    NULL
+  ));
+
+  Serial.println(xTaskCreate(
+    TaskDwinRead,
+    "DwinRead",
+    400,
+    NULL,
+    3,
     NULL
   ));
 
@@ -88,7 +97,7 @@ void TaskDhtRead(void *pvParameters __attribute__((unused)) ) {
       Serial.println(t_valid);
       Serial.print("tempValue : ");
       Serial.println(tempValue);
-      Serial.println(memoryPrint());
+      // Serial.println(memoryPrint());
       xSemaphoreGive(xSemaphore);
     }
     Serial.println(memoryPrint());
@@ -96,17 +105,36 @@ void TaskDhtRead(void *pvParameters __attribute__((unused)) ) {
   }
 }
 
-void TaskDwinControll(void *pvParameters __attribute__((unused)) ) {
+void TaskDwinWrite(void *pvParameters __attribute__((unused)) ) {
   // (void) pvParameters;
   TickType_t xLastWakeTime;
   const TickType_t xFreq = pdMS_TO_TICKS(2000);
   xLastWakeTime = xTaskGetTickCount();
   for (;;) {
     if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
-      Serial.println("Dwin task");
+      Serial.println("Dwin Write");
       // ssr::fan_control(50);
       // ssr::ptc_control(50);
-      //dwin::print_humitemp(tempValue, humiValue);
+      Serial.print("dwin tempValue : ");
+      Serial.println(tempValue);
+      dwin::print_humitemp(tempValue, humiValue);
+      xSemaphoreGive(xSemaphore);
+    }
+    Serial.println(memoryPrint());
+    vTaskDelayUntil(&xLastWakeTime, xFreq);
+  }
+}
+
+void TaskDwinRead(void *pvParameters __attribute__((unused)) ) {
+  // (void) pvParameters;
+  TickType_t xLastWakeTime;
+  const TickType_t xFreq = pdMS_TO_TICKS(200);
+  xLastWakeTime = xTaskGetTickCount();
+  for (;;) {
+    if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
+      Serial.println("Dwin Read");
+      Serial.println(dwin::read_setpoint());
+      // dwin::read_setpoint();
       xSemaphoreGive(xSemaphore);
     }
     Serial.println(memoryPrint());

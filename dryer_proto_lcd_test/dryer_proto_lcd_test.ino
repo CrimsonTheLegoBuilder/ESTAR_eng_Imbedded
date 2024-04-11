@@ -99,7 +99,7 @@ void sonic() {
 
   length = pulseIn(echo, HIGH);
 
-  distance = ((float)(340 * length) / 10000) / 2;/
+  distance = ((float)(340 * length) / 10000) / 2;
 
   if (distance > 30) {
     for (int i = 0; i < NUM_LEDS; i++) {
