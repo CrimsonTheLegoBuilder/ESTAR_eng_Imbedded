@@ -7,7 +7,7 @@
 
 const byte rx = 12;
 const byte tx = 13;
-const int LEN = 12;
+const int LEN = 50;
 
 SoftwareSerial mySerial(rx, tx);
 
@@ -20,26 +20,33 @@ void dwin::setup() {
   mySerial.begin(115200);
 }
 
+extern int __bss_end;
+extern void *__brkval;
+
+int memoryPrintl() {
+  int freeMemory;
+  if ((int)__brkval == 0) freeMemory = ((int)&freeMemory) - ((int)&__bss_end);
+  else freeMemory = ((int)&freeMemory) - ((int)&__brkval);
+  return freeMemory;
+}
+
 float dwin::read_setpoint() {
   int temp = -1;
   if (mySerial.available()) {
-    for (int i = 0; i <= LEN; i++) Buffer[i] = mySerial.read();
-    // for (int i = 0; i <= LEN; i++) {
-    //   Serial.print(Buffer[i], HEX);
-    //   Serial.print(" ");
-    // }
-    // Serial.println();
-    // if (Buffer[0] == 0X5A && Buffer[4] == 0X56) {
-    //   Serial.println(Buffer[8], HEX);
-    //   if (Buffer[8] == 1) digitalWrite(light, HIGH);
-    //   else digitalWrite(light, LOW);
-    // }
+    // for (int i = 0; i <= LEN; i++) Buffer[i] = mySerial.read();
+    int i = 0;
+    while (mySerial.available() > 0) Buffer[i++] = mySerial.read();
     if (Buffer[0] == 0X5A && Buffer[4] == 0X55) {
       temp = Buffer[8];
-      // Serial.println(temp);
+      Serial.println(memoryPrintl());
     }
+    return temp;
   }
-  return temp;
+  else {
+      while (mySerial.available() > 0) mySerial.read();
+      return -1;
+  }
+  //return temp;
 }
 
 void dwin::print_humitemp(float temp, float humi) {

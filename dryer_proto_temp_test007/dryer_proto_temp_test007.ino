@@ -26,7 +26,7 @@ int memoryPrint() {
 
 int ledPin = 11;
 extern int color;
-float tempValue = 0, humiValue = 0;
+float tempValue = 20, humiValue = 20;
 bool t_valid = 0;
 
 SemaphoreHandle_t xSemaphore = NULL;
@@ -55,22 +55,23 @@ void setup() {
   ));
 
   Serial.println(xTaskCreate(
-    TaskDwinWrite,
-    "DwinWrite",
-    350,
+    TaskDwinRead,
+    "DwinRead",
+    150,
     NULL,
     2,
     NULL
   ));
 
   Serial.println(xTaskCreate(
-    TaskDwinRead,
-    "DwinRead",
-    400,
+    TaskDwinWrite,
+    "DwinWrite",
+    150,
     NULL,
-    3,
+    2,
     NULL
   ));
+
 
   Serial.println("end");
 
@@ -128,16 +129,23 @@ void TaskDwinWrite(void *pvParameters __attribute__((unused)) ) {
 void TaskDwinRead(void *pvParameters __attribute__((unused)) ) {
   // (void) pvParameters;
   TickType_t xLastWakeTime;
-  const TickType_t xFreq = pdMS_TO_TICKS(200);
+  const TickType_t xFreq = pdMS_TO_TICKS(1000);
   xLastWakeTime = xTaskGetTickCount();
   for (;;) {
+    TickType_t xS, xE, xExc;
     if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
+      Serial.println(memoryPrint());
       Serial.println("Dwin Read");
       Serial.println(dwin::read_setpoint());
       // dwin::read_setpoint();
       xSemaphoreGive(xSemaphore);
     }
+    xE = xTaskGetTickCount();
+    xExc = xE - xS;
     Serial.println(memoryPrint());
+    if (xExc < xFreq) vTaskDelayUntil(&xLastWakeTime, xFreq - xExc);
+    else xLastWakeTime = xE;
+    // Serial.println(memoryPrint());
     vTaskDelayUntil(&xLastWakeTime, xFreq);
   }
 }
