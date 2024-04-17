@@ -46,7 +46,10 @@ ld PID::pid_control(ld setpoint, ld pv) {
   ld& dt = params.dt, lo = params.low_limit, hi = params.high_limit;
 
   ld err = setpoint - pv;
-
+  Serial.print("err : ");
+  Serial.println(err);
+  Serial.print("prev_err : ");
+  Serial.println(prev_err);
   integral += err * dt;
   derivative = (err - prev_err) / dt;
 
@@ -58,8 +61,8 @@ ld PID::pid_control(ld setpoint, ld pv) {
   // Serial.print(Pout);
   // Serial.print(" I : ");
   // Serial.print(Iout);
-  Serial.print(" D : ");
-  Serial.println(Dout);
+  Serial.print("set point : ");
+  Serial.println(setpoint);
   // Serial.print("output : ");
   // Serial.println(output);
   //restrict to max/min

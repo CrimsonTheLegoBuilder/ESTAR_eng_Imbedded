@@ -10,16 +10,17 @@ bool dht::check(float& t, float& h) {
   bool f = dht11.measure(&t, &h);
   // Serial.println(t);
   // Serial.println(h);
+  Serial.println(f);
   return f;
 }
 
 void dht::init(float& t, float& h) {
   int cnt = 100;
   while (cnt--) {
-    if (dht::check(t, h)) break;
+    if (dht::check(t, h)) { Serial.println("DHT11 initialized."); return; }
     Serial.println("wait...");
   }
-  Serial.println("DHT11 initialized.");
+  Serial.println("something wrong.");
   return;
 }
 

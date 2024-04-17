@@ -32,16 +32,18 @@ extern int color;
 float tempValue = 20, humiValue = 20;
 bool t_valid = 0;
 int sp;
+PID temper_pid = PID();
 
 SemaphoreHandle_t xSemaphore = NULL;
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
 
   dht::init(tempValue, humiValue);
   rgb::init(47);
   dwin::setup();
-  t_valid = 0;
+  temper_pid.init(.2, .1, .0005, 1e-4, .0);
+
 
   if ( xSemaphore == NULL ) { // Check to confirm that the Serial Semaphore has not already been created.
     xSemaphore = xSemaphoreCreateMutex();  // Create a mutex semaphore we will use to manage the Serial Port
@@ -50,14 +52,14 @@ void setup() {
 
   Serial.println("start");
 
-  Serial.println(xTaskCreate(
-    TaskDhtRead,
-    "DhtRead",
-    350,
-    NULL,
-    2,
-    NULL
-  ));
+  // Serial.println(xTaskCreate(
+  //   TaskDhtRead,
+  //   "DhtRead",
+  //   350,
+  //   NULL,
+  //   2,
+  //   NULL
+  // ));
 
   Serial.println(xTaskCreate(
     TaskDwinRead,
@@ -68,24 +70,32 @@ void setup() {
     NULL
   ));
 
-  Serial.println(xTaskCreate(
-    TaskDwinWrite,
-    "DwinWrite",
-    150,
-    NULL,
-    2,
-    NULL
-  ));
+  // Serial.println(xTaskCreate(
+  //   TaskDwinWrite,
+  //   "DwinWrite",
+  //   150,
+  //   NULL,
+  //   2,
+  //   NULL
+  // ));
+
+  // Serial.println(xTaskCreate(
+  //   TaskRgbControll,
+  //   "RgbControll",
+  //   150,
+  //   NULL,
+  //   1,
+  //   NULL
+  // ));
 
   Serial.println(xTaskCreate(
-    TaskRgbControll,
-    "RgbControll",
+    TaskPidControll,
+    "PidControll",
     150,
     NULL,
     1,
     NULL
   ));
-
 
   Serial.println("end");
 
@@ -100,11 +110,12 @@ void loop() {}
 void TaskDhtRead(void *pvParameters __attribute__((unused)) ) {
   // (void) pvParameters;
   TickType_t xLastWakeTime;
-  const TickType_t xFreq = pdMS_TO_TICKS(5000);
+  const TickType_t xFreq = pdMS_TO_TICKS(2000);
   xLastWakeTime = xTaskGetTickCount();
   for (;;) {
     if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
-      if (dht::check(tempValue, humiValue)) {
+      // Serial.println("fuck");
+      if (t_valid = dht::check(tempValue, humiValue)) {
         Serial.print("tempValue : ");
         Serial.println(tempValue);
         Serial.print("humiValue : ");
@@ -112,7 +123,8 @@ void TaskDhtRead(void *pvParameters __attribute__((unused)) ) {
       }
       xSemaphoreGive(xSemaphore);
     }
-    Serial.println(memoryPrint());
+    Serial.println(t_valid);
+    // Serial.println(memoryPrint());
     vTaskDelayUntil(&xLastWakeTime, xFreq);
   }
 }
@@ -124,11 +136,11 @@ void TaskDwinWrite(void *pvParameters __attribute__((unused)) ) {
   xLastWakeTime = xTaskGetTickCount();
   for (;;) {
     if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
-      Serial.println("Dwin Write");
+      // Serial.println("Dwin Write");
       dwin::print_humitemp(tempValue, humiValue);
       xSemaphoreGive(xSemaphore);
     }
-    Serial.println(memoryPrint());
+    // Serial.println(memoryPrint());
     vTaskDelayUntil(&xLastWakeTime, xFreq);
   }
 }
@@ -141,15 +153,15 @@ void TaskDwinRead(void *pvParameters __attribute__((unused)) ) {
   for (;;) {
     TickType_t xS, xE, xExc;
     if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
-      Serial.println(memoryPrint());
-      Serial.println("Dwin Read");
+      // Serial.println(memoryPrint());
+      // Serial.println("Dwin Read");
       if (dwin::read_setpoint(sp)) Serial.print("new read data: "), Serial.println(sp);
       else Serial.print("do not read anything. prev read data: "), Serial.println(sp);
       xSemaphoreGive(xSemaphore);
     }
     xE = xTaskGetTickCount();
     xExc = xE - xS;
-    Serial.println(memoryPrint());
+    // Serial.println(memoryPrint());
     if (xExc < xFreq) vTaskDelayUntil(&xLastWakeTime, xFreq - xExc);
     else xLastWakeTime = xE;
     vTaskDelayUntil(&xLastWakeTime, xFreq);
@@ -166,6 +178,31 @@ void TaskRgbControll(void *pvParameters __attribute__((unused)) ) {
       rgb::fixed(sp % 6);
       xSemaphoreGive(xSemaphore);
     }
+    vTaskDelayUntil(&xLastWakeTime, xFreq);
+  }
+}
+
+void TaskPidControll(void *pvParameters __attribute__((unused)) ) {
+  // (void) pvParameters;
+  TickType_t xLastWakeTime;
+  const TickType_t xFreq = pdMS_TO_TICKS(2000);
+  xLastWakeTime = xTaskGetTickCount();
+  for (;;) {
+    TickType_t xS, xE, xExc;
+    if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
+      // Serial.println("PID_task");
+      if (t_valid) {
+        float t = temper_pid.pid_control(sp, tempValue);
+        // Serial.println(t);
+      }
+      // Serial.println(memoryPrint());
+      xSemaphoreGive(xSemaphore);
+    }
+    xE = xTaskGetTickCount();
+    xExc = xE - xS;
+    // if (xExc < xFreq) vTaskDelayUntil(&xLastWakeTime, xFreq - xExc);
+    // else xLastWakeTime = xE;
+    // Serial.println(memoryPrint());
     vTaskDelayUntil(&xLastWakeTime, xFreq);
   }
 }

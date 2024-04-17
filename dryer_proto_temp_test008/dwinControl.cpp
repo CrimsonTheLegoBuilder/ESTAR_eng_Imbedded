@@ -1,3 +1,4 @@
+#include "Arduino.h"
 #ifndef _DWIN_CONTROL_SOURCE_
 #define _DWIN_CONTROL_SOURCE_
 
@@ -5,9 +6,9 @@
 #include <SoftwareSerial.h>
 // #include 
 
-const byte rx = 12;
-const byte tx = 13;
-const int LEN = 100;
+const byte rx = 11;
+const byte tx = 10;
+const int LEN = 64;
 
 SoftwareSerial mySerial(rx, tx);
 
@@ -17,7 +18,7 @@ unsigned char Temperature[8] = { 0x5a, 0xa5, 0x05, 0x82, temperature_add, 0x00, 
 unsigned char Humidity[8] = { 0x5a, 0xa5, 0x05, 0x82, humidity_add, 0x00, 0x00, 0x01 };
 
 void dwin::setup() {
-  mySerial.begin(115200);
+  mySerial.begin(38400);
 }
 
 extern int __bss_end;
@@ -31,17 +32,20 @@ int memoryPrintl() {
 }
 
 bool dwin::read_setpoint(int& temp) {
-  if (mySerial.available()) {
-    // for (int i = 0; i <= LEN; i++) Buffer[i] = mySerial.read();
+  int n;
+  if (n = mySerial.available()) {
     int i = 0;
-    while (mySerial.available() > 0) Buffer[i++] = mySerial.read();
-    if (Buffer[0] == 0X5A && Buffer[4] == 0X55) {
+    for (i = 0; i < 9; i++) Buffer[i] = mySerial.read();
+    //while (mySerial.available() > 0) Buffer[i++] = mySerial.read();
+    Serial.println(i);
+    for (int j = 0; j <= 9; j++) Serial.println(Buffer[j]);
+    if (Buffer[0] == 0X5A && Buffer[4] == 0X55 && i == 9) {
       temp = Buffer[8];
       Serial.print(temp);
       Serial.println("valid check ok");
     }
     else Serial.println("valid check fuck");
-    while (mySerial.available() > 0) mySerial.read();
+    //while (mySerial.available() > 0) mySerial.read();
     return 1;
   }
   else {
