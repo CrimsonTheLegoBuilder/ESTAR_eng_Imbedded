@@ -42,7 +42,21 @@ void ssr::fan_control(int w) {
   
   */
   int x = map(w, 0, 100, 0, 255);
-  analogWrite(ptc, x);
+  analogWrite(fan, x);
+}
+
+void ssr::P_control(int w) {//P control - for tuning
+  int x = map(w, 0, 100, 0, 255);
+  if (x > 10) {
+    analogWrite(ptc, x);
+    digitalWrite(htpmp, HIGH);
+    analogWrite(fan, x);
+  }
+  else {
+    analogWrite(ptc, 0);
+    digitalWrite(htpmp, LOW);
+    analogWrite(fan, 0);
+  }
 }
 
 #endif

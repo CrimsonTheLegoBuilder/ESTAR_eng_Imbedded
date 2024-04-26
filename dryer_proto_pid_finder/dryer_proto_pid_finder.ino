@@ -1,11 +1,11 @@
 #include <Arduino_FreeRTOS.h>
 #include <semphr.h>
 #include "EEPROM.h"
-#include "ledControl.h"
+//#include "ledControl.h"
 #include "dhtControl.h"
 #include "pidControl.h"
 #include "ssrControl.h"
-#include "dwinControl.h"
+//#include "dwinControl.h"
 
 typedef long long ll;
 typedef double ld;
@@ -28,23 +28,12 @@ int memoryPrint() {
   return freeMemory;
 }
 
-int ledPin = 11;
-extern int color;
-float tempValue = 20, humiValue = 20;
-bool t_valid = 0;
-int sp;
-PID temper_pid = PID();
-
 SemaphoreHandle_t xSemaphore = NULL;
 
 void setup() {
   Serial.begin(9600);
 
-  dht::init(tempValue, humiValue);
-  rgb::init(47);
-  dwin::setup();
   temper_pid.init(.2, .1, .0005, 1e-4, .0);
-
 
   if ( xSemaphore == NULL ) { // Check to confirm that the Serial Semaphore has not already been created.
     xSemaphore = xSemaphoreCreateMutex();  // Create a mutex semaphore we will use to manage the Serial Port
@@ -53,59 +42,7 @@ void setup() {
 
   Serial.println("start");
 
-  // Serial.println(xTaskCreate(
-  //   TaskDhtRead,
-  //   "DhtRead",
-  //   350,
-  //   NULL,
-  //   2,
-  //   NULL
-  // ));
 
-  Serial.println(xTaskCreate(
-    TaskDwinRead,
-    "DwinRead",
-    150,
-    NULL,
-    2,
-    NULL
-  ));
-
-  Serial.println(xTaskCreate(
-    TaskDwinWrite,
-    "DwinWrite",
-    150,
-    NULL,
-    2,
-    NULL
-  ));
-
-  Serial.println(xTaskCreate(
-    TaskRgbControll,
-    "RgbControll",
-    150,
-    NULL,
-    1,
-    NULL
-  ));
-
-  Serial.println(xTaskCreate(
-    TaskPidControll,
-    "PidControll",
-    150,
-    NULL,
-    1,
-    NULL
-  ));
-
-  Serial.println(xTaskCreate(
-    TaskSsrControll,
-    "SsrControll",
-    150,
-    NULL,
-    1,
-    NULL
-  ));
 
   Serial.println("end");
 
@@ -139,22 +76,6 @@ void TaskDhtRead(void *pvParameters __attribute__((unused)) ) {
   }
 }
 
-void TaskDwinWrite(void *pvParameters __attribute__((unused)) ) {
-  // (void) pvParameters;
-  TickType_t xLastWakeTime;
-  const TickType_t xFreq = pdMS_TO_TICKS(2000);
-  xLastWakeTime = xTaskGetTickCount();
-  for (;;) {
-    if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
-      // Serial.println("Dwin Write");
-      dwin::print_humitemp(tempValue, humiValue);
-      xSemaphoreGive(xSemaphore);
-    }
-    // Serial.println(memoryPrint());
-    vTaskDelayUntil(&xLastWakeTime, xFreq);
-  }
-}
-
 void TaskDwinRead(void *pvParameters __attribute__((unused)) ) {
   // (void) pvParameters;
   TickType_t xLastWakeTime;
@@ -174,20 +95,6 @@ void TaskDwinRead(void *pvParameters __attribute__((unused)) ) {
     // Serial.println(memoryPrint());
     if (xExc < xFreq) vTaskDelayUntil(&xLastWakeTime, xFreq - xExc);
     else xLastWakeTime = xE;
-    vTaskDelayUntil(&xLastWakeTime, xFreq);
-  }
-}
-
-void TaskRgbControll(void *pvParameters __attribute__((unused)) ) {
-  // (void) pvParameters;
-  TickType_t xLastWakeTime;
-  const TickType_t xFreq = pdMS_TO_TICKS(250);
-  xLastWakeTime = xTaskGetTickCount();
-  for (;;) {
-    if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
-      rgb::fixed(sp % 6);
-      xSemaphoreGive(xSemaphore);
-    }
     vTaskDelayUntil(&xLastWakeTime, xFreq);
   }
 }
