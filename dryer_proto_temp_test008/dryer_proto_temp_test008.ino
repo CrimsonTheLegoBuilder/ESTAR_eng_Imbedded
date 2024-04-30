@@ -12,9 +12,20 @@ typedef double ld;
 
 /*
 
+Arduino Mega PWM pin:
+~2 ~ ~13
+
+serial pin
+10, 11, 12, 13, 14, 15, 50, 51, 52, 53, 62, 63, 64
+
 Default config::
-  RGB_PIN 2
+  RGB_PIN 2 (LED strip)
   DHT_PIN 3
+  dwin rx 11
+  dwin tx 10
+  heatpump 4
+  ptc 5
+  fan 6
 
 */
 
