@@ -52,6 +52,7 @@ ld PID::pid_control(ld setpoint, ld pv) {
   Serial.println(prev_err);
   integral += err * dt;
   derivative = (err - prev_err) / dt;
+  // derivative = (pv - prev_pv) / dt;
 
   ld Pout = Kp * err;//proportional term
   ld Iout = Ki * integral;//integral term

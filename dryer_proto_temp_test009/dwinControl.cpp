@@ -55,7 +55,7 @@ dwin::Info dwin::read(int& temp) {
           }
           return { 0X60, -1 };
         default:
-          return { 0X60, -2 }
+          return { 0X60, -2 };
       }
     }
   }

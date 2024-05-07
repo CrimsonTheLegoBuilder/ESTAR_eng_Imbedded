@@ -56,8 +56,8 @@ void ssr::turn_off() {
   ssr::fan_control(0);
 }
 
-void ssr::run_dryer(bool BUTTON_STATE, bool CHANGE, int w) {
-  if (CHANGE) {
+void ssr::run_dryer(bool BUTTON_STATE, bool changed, int w) {
+  if (changed) {
     if (BUTTON_STATE) turn_on(w);
     else turn_off();
   }

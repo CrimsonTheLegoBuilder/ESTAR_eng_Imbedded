@@ -1,4 +1,5 @@
 #include <Arduino_FreeRTOS.h>
+#include <event_groups.h>
 #include <semphr.h>
 #include "EEPROM.h"
 #include "ledControl.h"
@@ -39,9 +40,10 @@ int memoryPrint() {
   return freeMemory;
 }
 
+const EventBits_t xDisturbanceDetected = 0x01;
+
 bool prev_button_state;
 bool BUTTON_STATE;
-bool CHANGE;
 
 int ledPin = 11;
 extern int color;
@@ -49,13 +51,13 @@ float tempValue = 20, humiValue = 20;
 bool t_valid = 0;
 int sp;
 PID temper_pid = PID();
+float power;
 
 SemaphoreHandle_t xSemaphore = NULL;
 
 void setup() {
   prev_button_state = 0;
   BUTTON_STATE = 0;
-  CHANGE = 0;
 
   Serial.begin(9600);
 
@@ -143,7 +145,6 @@ void TaskDhtRead(void *pvParameters __attribute__((unused)) ) {
   xLastWakeTime = xTaskGetTickCount();
   for (;;) {
     if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
-      // Serial.println("fuck");
       if (t_valid = dht::check(tempValue, humiValue)) {
         Serial.print("tempValue : ");
         Serial.println(tempValue);
@@ -221,7 +222,7 @@ void TaskPidControll(void *pvParameters __attribute__((unused)) ) {
     if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
       // Serial.println("PID_task");
       if (t_valid) {
-        float t = temper_pid.pid_control(sp, tempValue);
+        power = temper_pid.pid_control(sp, tempValue);
         // Serial.println(t);
       }
       // Serial.println(memoryPrint());
@@ -243,18 +244,35 @@ void TaskSsrControll(void *pvParameters __attribute__((unused)) ) {
   xLastWakeTime = xTaskGetTickCount();
   for (;;) {
     TickType_t xS, xE, xExc;
-    // if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
-    //   ssr::ptc_control(50);
-    //   xSemaphoreGive(xSemaphore);
-    // }
     if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
       if (prev_button_state != BUTTON_STATE) {
-        ssr::run_dryer(BUTTON_STATE, prev_button_state ,w);
+        ssr::run_dryer(BUTTON_STATE, prev_button_state, power);
         prev_button_state = BUTTON_STATE;
       }
+      xSemaphoreGive(xSemaphore);
     }
     xE = xTaskGetTickCount();
     xExc = xE - xS;
     vTaskDelayUntil(&xLastWakeTime, xFreq);
   }
+}
+
+
+void vDisturbanceDetectionTask(void *pvParameters) {
+    for (;;) {
+        if (detectDisturbance()) {
+            vTaskSuspend(xTaskToControlHandle); // 태스크 일시 정지
+        } else {
+            vTaskResume(xTaskToControlHandle); // 태스크 다시 시작
+        }
+        vTaskDelay(pdMS_TO_TICKS(500));
+    }
+}
+
+void vTaskToControl(void *pvParameters) {
+    for (;;) {
+        // 정상 작업 수행
+        doNormalOperation();
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
 }

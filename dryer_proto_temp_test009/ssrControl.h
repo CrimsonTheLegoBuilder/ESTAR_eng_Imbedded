@@ -15,7 +15,7 @@ namespace ssr {
   void fan_control(int w);
   void turn_on(int w);
   void turn_off();
-  void run_dryer(bool BUTTON_STATE, bool CHANGE, int w);
+  void run_dryer(bool BUTTON_STATE, bool changed, int w);
 }
 
 #endif
