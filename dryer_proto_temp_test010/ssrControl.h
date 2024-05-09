@@ -16,7 +16,6 @@ namespace ssr {
   void turn_on(int w);
   void turn_off();
   void run_dryer(bool BUTTON_STATE, bool changed, int w);
-  bool detect_disturbance();
 }
 
 #endif

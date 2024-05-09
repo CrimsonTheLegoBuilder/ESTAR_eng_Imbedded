@@ -40,9 +40,6 @@ int memoryPrint() {
   return freeMemory;
 }
 
-TaskHandle_t xSsrControlHandle = NULL;
-bool isTaskSuspended = false;  // 태스크가 정지되었는지 여부를 추적
-
 const EventBits_t xDisturbanceDetected = 0x01;
 
 bool prev_button_state;
@@ -86,54 +83,45 @@ void setup() {
   //   NULL
   // ));
 
-  // Serial.println(xTaskCreate(
-  //   TaskDwinRead,
-  //   "DwinRead",
-  //   150,
-  //   NULL,
-  //   2,
-  //   NULL
-  // ));
+  Serial.println(xTaskCreate(
+    TaskDwinRead,
+    "DwinRead",
+    150,
+    NULL,
+    2,
+    NULL
+  ));
 
-  // Serial.println(xTaskCreate(
-  //   TaskDwinWrite,
-  //   "DwinWrite",
-  //   150,
-  //   NULL,
-  //   2,
-  //   NULL
-  // ));
+  Serial.println(xTaskCreate(
+    TaskDwinWrite,
+    "DwinWrite",
+    150,
+    NULL,
+    2,
+    NULL
+  ));
 
-  // Serial.println(xTaskCreate(
-  //   TaskRgbControll,
-  //   "RgbControll",
-  //   150,
-  //   NULL,
-  //   1,
-  //   NULL
-  // ));
+  Serial.println(xTaskCreate(
+    TaskRgbControll,
+    "RgbControll",
+    150,
+    NULL,
+    1,
+    NULL
+  ));
 
-  // Serial.println(xTaskCreate(
-  //   TaskPidControll,
-  //   "PidControll",
-  //   150,
-  //   NULL,
-  //   1,
-  //   NULL
-  // ));
+  Serial.println(xTaskCreate(
+    TaskPidControll,
+    "PidControll",
+    150,
+    NULL,
+    1,
+    NULL
+  ));
 
   Serial.println(xTaskCreate(
     TaskSsrControll,
     "SsrControll",
-    150,
-    NULL,
-    1,
-    &xSsrControlHandle
-  ));
-
-  Serial.println(xTaskCreate(
-    vDisturbanceDetection,
-    "DisturbanceDetection",
     150,
     NULL,
     1,
@@ -149,6 +137,23 @@ void setup() {
 }
 
 void loop() {}
+
+void vDisturbanceDetectionTask(void *pvParameters) {
+    for (;;) {
+        if (detectDisturbance()) {
+            vTaskSuspend(xTaskToControlHandle); // 태스크 일시 정지
+        } else {
+            vTaskResume(xTaskToControlHandle); // 태스크 다시 시작
+        }
+        vTaskDelay(pdMS_TO_TICKS(500));
+    }
+}
+
+void vTaskToControl(void *pvParameters) {
+    for (;;) {
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
 
 void TaskDhtRead(void *pvParameters __attribute__((unused)) ) {
   // (void) pvParameters;
@@ -269,21 +274,5 @@ void TaskSsrControll(void *pvParameters __attribute__((unused)) ) {
   }
 }
 
-void vDisturbanceDetection(void *pvParameters) {
-  for (;;) {
-    if (ssr::detect_disturbance()) {
-      if (!isTaskSuspended) {
-        vTaskSuspend(xSsrControlHandle); // 태스크 일시 정지
-        isTaskSuspended = true;
-      }
-    }
-    else {
-      if (isTaskSuspended) {
-        vTaskResume(xSsrControlHandle); // 태스크 다시 시작
-        isTaskSuspended = false;
-      }
-    }
-    vTaskDelay(pdMS_TO_TICKS(500));
-  }
-}
+
 

@@ -3,7 +3,6 @@
 #define _SSR_SOURCE_
 
 int htpmp = 4, ptc = 5, fan = 6;
-int interrupt_pin = 18;//2 - 0, 3 - 1, 18 - 5, 19 - 4, 20 - 3, 21 - 2
 
 #include "ssrControl.h"
 
@@ -14,7 +13,6 @@ void ssr::init(int heatpump_, int ptc_, int fan_) {
   pinMode(htpmp, OUTPUT);
   pinMode(ptc, OUTPUT);
   pinMode(fan, OUTPUT);
-  pinMode(interrupt_pin, INPUT_PULLUP);
 }
 
 void ssr::ptc_control(int w) {//PID control
@@ -64,10 +62,5 @@ void ssr::run_dryer(bool BUTTON_STATE, bool changed, int w) {
     else turn_off();
   }
 }
-
-bool ssr::detect_disturbance() {
-  return digitalRead(interrupt_pin);
-}
-
 
 #endif
