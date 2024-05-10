@@ -40,7 +40,7 @@ bool LED::run_led(const int& mode, int& brt) {
 }
 
 bool LED::detect_disturbance() {
-  if (digitalRead(detector) == HIGH) return 1;
+  if (digitalRead(detector) == LOW) return 1;
   else return 0;
 }
 

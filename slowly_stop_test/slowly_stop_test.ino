@@ -21,6 +21,11 @@ bool isTaskSuspended = false;  // 태스크가 정지되었는지 여부를 추�
 bool changed;
 int MODE;
 
+int signal_occur;
+int stop_order_flag;
+int is_door_closed;
+
+
 const EventBits_t xDisturbanceDetected = 0x01;
 
 void setup() {
@@ -79,6 +84,8 @@ void TaskSerialRead(void *pvParameters __attribute__((unused)) ) {
   }
 }
 
+int is_need_PID = 1;
+
 void TaskLedlight(void *pvParameters __attribute__((unused)) ) {
   // (void) pvParameters;
   TickType_t xLastWakeTime;
@@ -86,7 +93,7 @@ void TaskLedlight(void *pvParameters __attribute__((unused)) ) {
   xLastWakeTime = xTaskGetTickCount();
   for (;;) {
     if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
-      LED::run_led(MODE);
+      is_need_PID = LED::run_led(MODE);
       xSemaphoreGive(xSemaphore);
     }
     // Serial.println(memoryPrint());
