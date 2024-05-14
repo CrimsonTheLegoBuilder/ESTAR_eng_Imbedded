@@ -19,17 +19,17 @@ int memoryPrint() {
 }
 
 TaskHandle_t xLedHandle = NULL;
-bool isTaskSuspended = false;  // 태스크가 정지되었는지 여부를 추적
+volatile bool isTaskSuspended = false;  // 태스크가 정지되었는지 여부를 추적
 bool changed;
-int MODE;
-int brightness;
+volatile int MODE;
+volatile int brightness;
 
-int run_state;//1 = working, -1 = slowly decrease, 0 = do not working
-int signal_occur;
-int stop_order_flag;
-int prev_door_state;//0 = opened, 1 = closed
-int interrupt_change;
-int heater_flag;
+volatile int run_state;//1 = working, -1 = slowly decrease, 0 = do not working
+volatile int signal_occur;
+volatile int stop_order_flag;
+volatile int prev_door_state;//0 = opened, 1 = closed
+volatile int interrupt_change;
+volatile int heater_flag;
 
 const EventBits_t xDisturbanceDetected = 0x01;
 
