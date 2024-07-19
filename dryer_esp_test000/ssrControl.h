@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <stdio.h>
 #include <math.h>
+#include "datainfo.h"
 
 typedef long long ll;
 typedef double ld;

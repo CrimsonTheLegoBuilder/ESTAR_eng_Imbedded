@@ -6,12 +6,10 @@
 #include "turntable.h"
 
 int memoryPrint() {
-  // ESP32에서는 이 방법이 정확하지 않을 수 있습니다. 대신 heap_caps_get_free_size()를 사용할 수 있습니다.
   return heap_caps_get_free_size(MALLOC_CAP_8BIT);
 }
 
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(9600);
   dwin::setup();
 
@@ -22,9 +20,9 @@ void setup() {
 
   BaseType_t result;
 
-  result = xTaskCreate(TaskDwinRead, "DwinRead", 2048, NULL, 2, NULL);
+  result = xTaskCreate(TaskDwinRead, "WTSRead", 2048, NULL, 2, NULL);
   if (result != pdPASS) {
-    Serial.println("Failed to create DwinRead task");
+    Serial.println("Failed to create WTSRead task");
   }
 
   result = xTaskCreate(TaskDwinWrite, "DwinWrite", 2048, NULL, 2, NULL);
@@ -38,7 +36,7 @@ void setup() {
 
 void loop() {}
 
-void TaskDhtRead(void *pvParameters) {
+void TaskWTSRead(void *pvParameters) {
   TickType_t xLastWakeTime = xTaskGetTickCount();
   const TickType_t xFrequency = pdMS_TO_TICKS(2000);
 

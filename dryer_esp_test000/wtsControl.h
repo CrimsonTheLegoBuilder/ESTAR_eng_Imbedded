@@ -7,7 +7,7 @@ library for wts3535
 */
 
 #include <Arduino.h>
-#include "mathx.h"
+#include "datainfo.h"
 
 #define WTS_PIN 3
 
