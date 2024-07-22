@@ -8,6 +8,10 @@ const int t_pin = 3;
 const int h_pin = 4;
 const int VDD = 3300;
 
+/*
+구조체로 두 개 이상의 온습도 센서를 관리해야한다. 구조 변경 필요.
+*/
+
 int wts::init(Data& data) {
   pinMode(t_pin, INPUT);
   pinMode(h_pin, INPUT);

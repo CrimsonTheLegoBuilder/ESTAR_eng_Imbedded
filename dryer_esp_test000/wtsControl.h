@@ -9,7 +9,7 @@ library for wts3535
 #include <Arduino.h>
 #include "datainfo.h"
 
-#define WTS_PIN 3
+// #define WTS_PIN 3
 
 // struct Data {
 //   float humi, temp;
