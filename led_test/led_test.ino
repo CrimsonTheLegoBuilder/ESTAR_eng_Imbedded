@@ -76,8 +76,8 @@ void setup() {
 
 void loop() {
   // 1: red | 2: orange | 3: yellow | 4: green | 5: blue | 0: white
-  // fixed(5);
+  fixed(5);
   // rainbow();
-  rotate(5);
-  delay(60);
+  // rotate(5);
+  // delay(60);
 }

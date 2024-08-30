@@ -364,26 +364,27 @@ void HeatPumpTask(void *pvParameters) {
     Serial.println("Starting Pump...");
 
     while (true) {
-      if (xSemaphoreTake(xSemaphore, portMAX_DELAY) == pdTRUE) {
-        if (!isDryerRunning) {
-          ssr::heatpump_control(LOW);
-          xSemaphoreGive(xSemaphore);
-          Serial.println("HeatPump DOWN");
-          break;
-        }
-        Serial.println("HeatPump ON");
-        tmp = data.temp;
-        ssr::heatpump_control(HIGH);
-        xSemaphoreGive(xSemaphore);
-        pump.compute(tmp, ho);
-      }
-      vTaskDelay(pdMS_TO_TICKS(2000 / portTICK_PERIOD_MS));
-      /*
+      // if (xSemaphoreTake(xSemaphore, portMAX_DELAY) == pdTRUE) {
+      //   if (!isDryerRunning) {
+      //     ssr::heatpump_control(LOW);
+      //     xSemaphoreGive(xSemaphore);
+      //     Serial.println("HeatPump DOWN");
+      //     break;
+      //   }
+      //   Serial.println("HeatPump ON");
+      //   tmp = data.temp;
+      //   ssr::heatpump_control(HIGH);
+      //   xSemaphoreGive(xSemaphore);
+      //   pump.compute(tmp, ho);
+      // }
+      // vTaskDelay(pdMS_TO_TICKS(2000 / portTICK_PERIOD_MS));
+      
       if (xSemaphoreTake(xSemaphore, portMAX_DELAY) == pdTRUE) {
         tmp = data.temp;
         if (!isDryerRunning) {
           ssr::heatpump_control(0);
           xSemaphoreGive(xSemaphore);
+          Serial.println("HeatPump DOWN");
           break;
         }
         xSemaphoreGive(xSemaphore);
@@ -411,7 +412,7 @@ void HeatPumpTask(void *pvParameters) {
         Serial.println("Pump OFF");
         vTaskDelay(pdMS_TO_TICKS(ho.pump_off_duration));
       }
-      */
+      
     }
     Serial.println("Pump Stopped.");
   }
