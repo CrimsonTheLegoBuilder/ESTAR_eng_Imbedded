@@ -7,7 +7,7 @@ void setup() {
   for (int i = 0; i < 6; i++) {
     pinMode(pinNum[i], OUTPUT);
   }
-  speed = 0;
+  speed = 250;
   acc = 25;
   analogWrite(2, speed);
   analogWrite(8, speed);
@@ -22,15 +22,15 @@ void loop() {
   // put your main code here, to run repeatedly:
   analogWrite(2, speed);
   analogWrite(8, speed);
-  speed += acc;
-  if (acc > 0 && speed > 250) {
-    acc *= -1;
-    speed += acc;
-  }
-  else if (acc < 0 && speed < 0) {
-    acc *= -1;
-    speed += acc;
-  }
+  // speed += acc;
+  // if (acc > 0 && speed > 250) {
+    // acc *= -1;
+    // speed += acc;
+  // }
+  // else if (acc < 0 && speed < 0) {
+    // acc *= -1;
+    // speed += acc;
+  // }
   Serial.println(speed);
   delay(1000);
 }
