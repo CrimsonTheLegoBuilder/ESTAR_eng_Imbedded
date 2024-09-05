@@ -92,8 +92,9 @@ class LPD8806Controller : public CPixelLEDController<RGB_ORDER> {
 	public:
 		// LPD8806 spec wants the high bit of every rgb data byte sent out to be set.
 		__attribute__((always_inline)) inline static uint8_t adjust(FASTLED_REGISTER uint8_t data) { return ((data>>1) | 0x80) + ((data && (data<254)) & 0x01); }
-		__attribute__((always_inline)) inline static void postBlock(int len) {
-			SPI::writeBytesValueRaw(0, ((len*3+63)>>6));
+		__attribute__((always_inline)) inline static void postBlock(int len, void* context = NULL) {
+			SPI* pSPI = static_cast<SPI*>(context);
+			pSPI->writeBytesValueRaw(0, ((len*3+63)>>6));
 		}
 
 	};
@@ -110,7 +111,7 @@ protected:
 
 	/// @copydoc CPixelLEDController::showPixels()
 	virtual void showPixels(PixelController<RGB_ORDER> & pixels) {
-		mSPI.template writePixels<0, LPD8806_ADJUST, RGB_ORDER>(pixels);
+		mSPI.template writePixels<0, LPD8806_ADJUST, RGB_ORDER>(pixels, &mSPI);
 	}
 };
 
@@ -146,7 +147,7 @@ protected:
 	/// @copydoc CPixelLEDController::showPixels()
 	virtual void showPixels(PixelController<RGB_ORDER> & pixels) {
 		mWaitDelay.wait();
-		mSPI.template writePixels<0, DATA_NOP, RGB_ORDER>(pixels);
+		mSPI.template writePixels<0, DATA_NOP, RGB_ORDER>(pixels, NULL);
 		mWaitDelay.mark();
 	}
 };
@@ -363,6 +364,11 @@ private:
 	}
 };
 
+/// APA102 high definition controller class.
+/// @tparam DATA_PIN the data pin for these LEDs
+/// @tparam CLOCK_PIN the clock pin for these LEDs
+/// @tparam RGB_ORDER the RGB ordering for these LEDs
+/// @tparam SPI_SPEED the clock divider used for these LEDs.  Set using the ::DATA_RATE_MHZ / ::DATA_RATE_KHZ macros.  Defaults to ::DATA_RATE_MHZ(24)
 template <
 	uint8_t DATA_PIN,
 	uint8_t CLOCK_PIN,
@@ -522,7 +528,7 @@ protected:
 		// Make sure the FLAG_START_BIT flag is set to ensure that an extra 1 bit is sent at the start
 		// of each triplet of bytes for rgb data
 		// writeHeader();
-		mSPI.template writePixels<FLAG_START_BIT, DATA_NOP, RGB_ORDER>( pixels );
+		mSPI.template writePixels<FLAG_START_BIT, DATA_NOP, RGB_ORDER>(pixels, NULL);
 		writeHeader();
 	}
 
