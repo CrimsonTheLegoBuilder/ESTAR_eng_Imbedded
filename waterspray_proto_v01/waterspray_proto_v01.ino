@@ -3,9 +3,6 @@
 #include <semphr.h>
 #include "EEPROM.h"
 // #include "ledControl.h"
-// #include "dhtControl.h"
-// #include "pidControl.h"
-// #include "ssrControl.h"
 // #include "dwinControl.h"
 
 typedef long long ll;
@@ -41,24 +38,11 @@ int memoryPrint() {
 }
 
 const EventBits_t xDisturbanceDetected = 0x01;
-
-bool prev_button_state;
-bool BUTTON_STATE;
-
-int ledPin = 11;
-extern int color;
-float tempValue = 20, humiValue = 20;
-bool t_valid = 0;
-int sp;
-PID temper_pid = PID();
-float power;
-
 SemaphoreHandle_t xSemaphore = NULL;
 
-void setup() {
-  prev_button_state = 0;
-  BUTTON_STATE = 0;
 
+
+void setup() {
   Serial.begin(9600);
 
   // dht::init(tempValue, humiValue);
