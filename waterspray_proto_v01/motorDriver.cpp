@@ -1,6 +1,3 @@
-#ifndef _MOTOR_SOURCE_
-#define _MOTOR_SOURCE_
-
 /*
 This file is control both motor for rotate turntable and photo sensor for count teeth of turntable.
 
@@ -13,6 +10,92 @@ This file is control both motor for rotate turntable and photo sensor for count 
 
 */
 
+#ifndef _MOTOR_SOURCE_
+#define _MOTOR_SOURCE_
 
+#include "motorDriver.h"
+
+Motor* Motor::motor1 = nullptr;
+Motor* Motor::motor2 = nullptr;
+
+//Motor motor1(MOTOR1_DIR, MOTOR1_SPD, BTN1_PIN, BTN2_PIN, PHOTO_PIN, 60);
+Motor motor2(MOTOR2_DIR, MOTOR2_SPD, BTN3_PIN, BTN4_PIN);
+
+void Motor::begin() {
+  if (motor1 == nullptr) {
+    motor1 = this;
+    attachInterrupt(digitalPinToInterrupt(sensor_pin), photoISR1, RISING);
+  }
+  else if (motor2 == nullptr) {
+    motor2 = this;
+    attachInterrupt(digitalPinToInterrupt(btn_pin1), sensorISR2, RISING);
+  }
+}
+
+void Motor::set_speed(int speed) { spd = speed; analogWrite(spd_pin, spd); }
+
+void Motor::set_direction(int direction) { dir = direction; digitalWrite(dir_pin, dir); }
+void Motor::toggle() { dir ^= 1; digitalWrite(dir_pin, dir); }
+
+void Motor::handle_pulse() {
+  unsigned long current_time = micros();
+  if (current_time - last_pulse_time >= debounce_delay) {
+    pulse_interval = current_time - last_pulse_time;
+    last_pulse_time = current_time;
+  }
+}
+
+float Motor::rad() {
+  return 2 * PI * cnt / teeth;
+}
+
+float Motor::degree() {
+  return 360 * cnt / teeth;
+}
+
+int Motor::count_() {
+  if (pulse_interval > 0) {
+    rpm = (1000000.0 / pulse_interval) * (60.0 / teeth);
+    Serial.print("RPM: ");
+    Serial.println(rpm);
+    pulse_interval = 0; // reset pulse interval
+    cnt++;
+    // Serial.print("cnt++:: ");
+    // Serial.println(cnt);
+  }
+}
+
+void Motor::photoISR1() {//wtf?
+  if (motor1 != nullptr) {
+   motor1->handle_pulse();
+  }
+}
+
+void Motor::sensorISR2() {
+  if (motor2 != nullptr) {
+    motor2->toggle();
+  }
+}
+
+void Motor::DEBUG() {
+  Serial.print("spd:: ");
+  Serial.println(spd);
+  Serial.print("dir:: ");
+  Serial.println(dir);
+  Serial.print("rpm ");
+  Serial.println(rpm);
+}
 
 #endif
+
+// void onPulse() {
+//   unsigned long current_pulse_time = micros();
+//   if (current_pulse_time - last_pulse_time >= debounce_delay) {
+//     pulse_interval = (current_pulse_time - last_pulse_time);
+//     last_pulse_time = current_pulse_time;
+//     //if (!dir) return;
+//     if (cnt >= teeth) {
+//       direction_changed = true;
+//     }
+//   }
+// }

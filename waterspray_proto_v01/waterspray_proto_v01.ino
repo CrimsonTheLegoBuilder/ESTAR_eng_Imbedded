@@ -1,7 +1,9 @@
-#include <Arduino_FreeRTOS.h>
-#include <event_groups.h>
-#include <semphr.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <freertos/semphr.h>
 #include "EEPROM.h"
+#include "systemConfig.h"
+#include "motorDriver.h"
 // #include "ledControl.h"
 // #include "dwinControl.h"
 
@@ -50,6 +52,11 @@ void setup() {
   // dwin::setup();
   // temper_pid.init(.2, .1, .0005, 1e-4, .0);
 
+  motor1_.begin();
+  motor2_.begin();
+
+  motor1_.set_direction(1);
+  motor1_.set_speed(100);
 
   if ( xSemaphore == NULL ) { // Check to confirm that the Serial Semaphore has not already been created.
     xSemaphore = xSemaphoreCreateMutex();  // Create a mutex semaphore we will use to manage the Serial Port
@@ -57,6 +64,15 @@ void setup() {
   }
 
   Serial.println("start");
+
+  Serial.println(xTaskCreate(
+    TaskMotorControl,
+    "MotorControl",
+    350,
+    NULL,
+    2,
+    NULL
+  ));
 
   // Serial.println(xTaskCreate(
   //   TaskDhtRead,
@@ -138,6 +154,22 @@ void loop() {}
 //         vTaskDelay(pdMS_TO_TICKS(1000));
 //     }
 // }
+
+void TaskMotorControl(void *pvParameters __attribute__((unused)) ) {
+  // (void) pvParameters;
+  TickType_t xLastWakeTime;
+  const TickType_t xFreq = pdMS_TO_TICKS(500);
+  xLastWakeTime = xTaskGetTickCount();
+  for (;;) {
+    if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
+      //motor1.count_();
+      //motor1.DEBUG();
+      xSemaphoreGive(xSemaphore);
+    }
+    // Serial.println(memoryPrint());
+    vTaskDelayUntil(&xLastWakeTime, xFreq);
+  }
+}
 
 // void TaskDhtRead(void *pvParameters __attribute__((unused)) ) {
 //   // (void) pvParameters;
