@@ -22,15 +22,15 @@ unsigned char Temperature[8] = { 0x5a, 0xa5, 0x05, WRITE_DATA, TEMP_ADD, 0x00, 0
 unsigned char Humidity[8] = { 0x5a, 0xa5, 0x05, WRITE_DATA, HUMI_ADD, 0x00, 0x00, 0x01 };
 unsigned char arr[8] = { 0x5a, 0xa5, 0x05, 0x82, 0x00, 0x00, 0x00, 0x01 };
 
-extern int __bss_end;
-extern void *__brkval;
+// extern int __bss_end;
+// extern void *__brkval;
 
-int memoryPrintl() {
-  int freeMemory;
-  if ((int)__brkval == 0) freeMemory = ((int)&freeMemory) - ((int)&__bss_end);
-  else freeMemory = ((int)&freeMemory) - ((int)&__brkval);
-  return freeMemory;
-}
+// int memoryPrintl() {
+//   int freeMemory;
+//   if ((int)__brkval == 0) freeMemory = ((int)&freeMemory) - ((int)&__bss_end);
+//   else freeMemory = ((int)&freeMemory) - ((int)&__brkval);
+//   return freeMemory;
+// }
 
 /*
 LCD로부터 읽어들인 데이터의 목표와 내용만 간단하게 실어서 내보내도록 단순화.

@@ -18,13 +18,13 @@ This file is control both motor for rotate turntable and photo sensor for count 
 Motor* Motor::motor1 = nullptr;
 Motor* Motor::motor2 = nullptr;
 
-//Motor motor1(MOTOR1_DIR, MOTOR1_SPD, BTN1_PIN, BTN2_PIN, PHOTO_PIN, 60);
-Motor motor2(MOTOR2_DIR, MOTOR2_SPD, BTN3_PIN, BTN4_PIN);
+Motor motor1_ = Motor(MOTOR1_DIR, MOTOR1_SPD, BTN1_PIN, BTN2_PIN, PHOTO_PIN, 36);
+Motor motor2_ = Motor(MOTOR2_DIR, MOTOR2_SPD, BTN3_PIN, BTN4_PIN);
 
 void Motor::begin() {
   if (motor1 == nullptr) {
     motor1 = this;
-    attachInterrupt(digitalPinToInterrupt(sensor_pin), photoISR1, RISING);
+    attachInterrupt(digitalPinToInterrupt(sensor_pin), photoISR1, HIGH);
   }
   else if (motor2 == nullptr) {
     motor2 = this;
@@ -37,7 +37,7 @@ void Motor::set_speed(int speed) { spd = speed; analogWrite(spd_pin, spd); }
 void Motor::set_direction(int direction) { dir = direction; digitalWrite(dir_pin, dir); }
 void Motor::toggle() { dir ^= 1; digitalWrite(dir_pin, dir); }
 
-void Motor::handle_pulse() {
+void IRAM_ATTR Motor::handle_pulse() {
   unsigned long current_time = micros();
   if (current_time - last_pulse_time >= debounce_delay) {
     pulse_interval = current_time - last_pulse_time;
@@ -53,11 +53,15 @@ float Motor::degree() {
   return 360 * cnt / teeth;
 }
 
-int Motor::count_() {
+void Motor::count_() {
+  // Serial.print("PULSE: ");
+  // Serial.println(pulse_interval);
   if (pulse_interval > 0) {
     rpm = (1000000.0 / pulse_interval) * (60.0 / teeth);
     Serial.print("RPM: ");
     Serial.println(rpm);
+    Serial.print("pulse_interval: ");
+    Serial.println(pulse_interval);
     pulse_interval = 0; // reset pulse interval
     cnt++;
     // Serial.print("cnt++:: ");
@@ -67,7 +71,7 @@ int Motor::count_() {
 
 void Motor::photoISR1() {//wtf?
   if (motor1 != nullptr) {
-   motor1->handle_pulse();
+    motor1->handle_pulse();
   }
 }
 
@@ -82,8 +86,10 @@ void Motor::DEBUG() {
   Serial.println(spd);
   Serial.print("dir:: ");
   Serial.println(dir);
-  Serial.print("rpm ");
+  Serial.print("rpm:: ");
   Serial.println(rpm);
+  Serial.print("photo:: ");
+  Serial.println(digitalRead(sensor_pin));
 }
 
 #endif

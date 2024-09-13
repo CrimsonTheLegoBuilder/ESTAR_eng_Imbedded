@@ -7,8 +7,8 @@
 // #include "ledControl.h"
 // #include "dwinControl.h"
 
-typedef long long ll;
-typedef double ld;
+// typedef long long ll;
+// typedef double ld;
 
 /*
 
@@ -29,6 +29,13 @@ Default config::
 
 */
 
+//for ESP32
+int memoryPrint() {
+    return xPortGetFreeHeapSize();
+}
+
+/*
+//for Arduino
 extern int __bss_end;
 extern void *__brkval;
 
@@ -38,11 +45,12 @@ int memoryPrint() {
   else freeMemory = ((int)&freeMemory) - ((int)&__brkval);
   return freeMemory;
 }
-
+*/
 const EventBits_t xDisturbanceDetected = 0x01;
 SemaphoreHandle_t xSemaphore = NULL;
 
-
+// extern Motor motor1_;
+// extern Motor motor2_;
 
 void setup() {
   Serial.begin(9600);
@@ -56,7 +64,7 @@ void setup() {
   motor2_.begin();
 
   motor1_.set_direction(1);
-  motor1_.set_speed(100);
+  motor1_.set_speed(200);
 
   if ( xSemaphore == NULL ) { // Check to confirm that the Serial Semaphore has not already been created.
     xSemaphore = xSemaphoreCreateMutex();  // Create a mutex semaphore we will use to manage the Serial Port
@@ -68,7 +76,7 @@ void setup() {
   Serial.println(xTaskCreate(
     TaskMotorControl,
     "MotorControl",
-    350,
+    4096,
     NULL,
     2,
     NULL
@@ -158,12 +166,12 @@ void loop() {}
 void TaskMotorControl(void *pvParameters __attribute__((unused)) ) {
   // (void) pvParameters;
   TickType_t xLastWakeTime;
-  const TickType_t xFreq = pdMS_TO_TICKS(500);
+  const TickType_t xFreq = pdMS_TO_TICKS(50);
   xLastWakeTime = xTaskGetTickCount();
   for (;;) {
     if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
-      //motor1.count_();
-      //motor1.DEBUG();
+      motor1_.count_();
+      // motor1_.DEBUG();
       xSemaphoreGive(xSemaphore);
     }
     // Serial.println(memoryPrint());

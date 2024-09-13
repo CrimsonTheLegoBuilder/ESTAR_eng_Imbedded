@@ -21,11 +21,12 @@ struct Motor {
   volatile bool direction_changed;
   //PID pid;
 
-  Motor(int dirPin, int spdPin, int btn1, int btn2, int sensorPin = -1, int t = -1) : dir_pin(dirPin), spd_pin(spdPin) {
+  Motor(int dirPin, int spdPin, int btn1, int btn2, int sensorPin = -1, int t = -1)
+  : dir_pin(dirPin), spd_pin(spdPin), btn_pin1(btn1), btn_pin2(btn2) {
     pinMode(dir_pin, OUTPUT);//digital
     pinMode(spd_pin, OUTPUT);//analog
-    pinMode(btn_pin1, INPUT_PULLUP);//digital
-    pinMode(btn_pin2, INPUT_PULLUP);//digital
+    pinMode(btn_pin1, INPUT_PULLDOWN);//digital
+    pinMode(btn_pin2, INPUT_PULLDOWN);//digital
     sensor_pin = sensorPin;
     if (~sensorPin) pinMode(sensor_pin, INPUT_PULLUP);
     teeth = t;
@@ -44,7 +45,7 @@ struct Motor {
   void toggle();
   float rad();
   float degree();
-  int count_();
+  void count_();
   static void photoISR1();
   static void btnISR1();
   static void btnISR2();
@@ -55,9 +56,9 @@ struct Motor {
   static Motor* motor2;
 
   void DEBUG();
-}
+};
 
-//object motor 1, 2
+// //object motor 1, 2
 extern Motor motor1_;
 extern Motor motor2_;
 

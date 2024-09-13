@@ -20,19 +20,19 @@ CRGB leds[100];
 
 void init(int rgb_num) {
   RGB_NUM = rgb_num;
-  FastLED.addLeds<WS2811, RGB_PIN, GRB>(leds, 30);
+  FastLED.addLeds<WS2811, RGB_PIN, GRB>(leds, 47);
   rain_pt = 0;
   return;
 }
 
 void fixed(const int& color) {
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < RGB_NUM; i++) {
     if (color == 1) leds[i] = RED_COLOR;
     else if (color == 2) leds[i] = ORANGE_COLOR;
     else if (color == 3) leds[i] = YELLOW_COLOR;
     else if (color == 4) leds[i] = GREEN_COLOR;
     else if (color == 5) leds[i] = BLUE_COLOR;
-    else leds[i] = CRGB(255, 255, 255);
+    else leds[i] = CRGB(237, 230, 219);
   }
   FastLED.show();
   return;
@@ -71,13 +71,13 @@ void rotate(int color) {
 }
 
 void setup() {
-  init(15);
+  init(60);
 }
 
 void loop() {
   // 1: red | 2: orange | 3: yellow | 4: green | 5: blue | 0: white
-  // fixed(0);
+  fixed(0);
   // rainbow();
-  rotate(0);
+  // rotate(0);
   // delay(60);
 }
