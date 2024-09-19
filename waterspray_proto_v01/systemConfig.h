@@ -39,4 +39,7 @@ enum EventType {
 
 const unsigned long debounce_delay = 200;
 
+const unsigned long pwm_freq = 20000;
+const unsigned long pwm_res = 8;
+
 #endif

@@ -12,10 +12,10 @@ struct Motor {
   int btn_pin1;
   int btn_pin2;
   int sensor_pin;
-  int teeth;
-  int cnt;
   float rpm;
   int spd, dir;
+  volatile int teeth;
+  volatile int cnt;
   volatile unsigned long last_pulse_time;
   volatile unsigned long pulse_interval;
   volatile bool direction_changed;
@@ -24,16 +24,17 @@ struct Motor {
   Motor(int dirPin, int spdPin, int btn1, int btn2, int sensorPin = -1, int t = -1)
   : dir_pin(dirPin), spd_pin(spdPin), btn_pin1(btn1), btn_pin2(btn2) {
     pinMode(dir_pin, OUTPUT);//digital
-    pinMode(spd_pin, OUTPUT);//analog
+    // pinMode(spd_pin, OUTPUT);//analog
+    ledcAttach(spd_pin, pwm_freq, pwm_res);
     pinMode(btn_pin1, INPUT_PULLDOWN);//digital
     pinMode(btn_pin2, INPUT_PULLDOWN);//digital
     sensor_pin = sensorPin;
     if (~sensorPin) pinMode(sensor_pin, INPUT_PULLUP);
-    teeth = t;
-    cnt = 0;
     rpm = 0;
     spd = 0;
     dir = 0;
+    teeth = t;
+    cnt = 0;
     last_pulse_time = 0;
     pulse_interval = 0;
     direction_changed = 0;

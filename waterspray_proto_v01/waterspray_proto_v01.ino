@@ -64,7 +64,7 @@ void setup() {
   motor2_.begin();
 
   motor1_.set_direction(1);
-  motor1_.set_speed(200);
+  motor1_.set_speed(255);
 
   if ( xSemaphore == NULL ) { // Check to confirm that the Serial Semaphore has not already been created.
     xSemaphore = xSemaphoreCreateMutex();  // Create a mutex semaphore we will use to manage the Serial Port
@@ -76,6 +76,15 @@ void setup() {
   Serial.println(xTaskCreate(
     TaskMotorControl,
     "MotorControl",
+    4096,
+    NULL,
+    2,
+    NULL
+  ));
+
+  Serial.println(xTaskCreate(
+    TaskMotorDEBUG,
+    "MotorDEBUG",
     4096,
     NULL,
     2,
@@ -172,6 +181,22 @@ void TaskMotorControl(void *pvParameters __attribute__((unused)) ) {
     if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
       motor1_.count_();
       // motor1_.DEBUG();
+      xSemaphoreGive(xSemaphore);
+    }
+    // Serial.println(memoryPrint());
+    vTaskDelayUntil(&xLastWakeTime, xFreq);
+  }
+}
+
+void TaskMotorDEBUG(void *pvParameters __attribute__((unused)) ) {
+  // (void) pvParameters;
+  TickType_t xLastWakeTime;
+  const TickType_t xFreq = pdMS_TO_TICKS(50);
+  xLastWakeTime = xTaskGetTickCount();
+  for (;;) {
+    if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
+      // motor1_.count_();
+      motor1_.DEBUG();
       xSemaphoreGive(xSemaphore);
     }
     // Serial.println(memoryPrint());
