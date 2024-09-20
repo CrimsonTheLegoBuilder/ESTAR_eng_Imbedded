@@ -47,6 +47,7 @@ struct Motor {
   float rad();
   float degree();
   void count_();
+  void stop();
   static void photoISR1();
   static void btnISR1();
   static void btnISR2();

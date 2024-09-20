@@ -25,8 +25,8 @@ void Motor::begin() {
   if (motor1 == nullptr) {
     motor1 = this;
     attachInterrupt(digitalPinToInterrupt(sensor_pin), photoISR1, HIGH);
-    attachInterrupt(digitalPinToInterrupt(btn_pin1), btn_ISR1, HIGH);
-    attachInterrupt(digitalPinToInterrupt(btn_pin2), btn_ISR2, HIGH);
+    attachInterrupt(digitalPinToInterrupt(btn_pin1), btnISR1, HIGH);
+    attachInterrupt(digitalPinToInterrupt(btn_pin2), btnISR2, HIGH);
   }
   else if (motor2 == nullptr) {
     motor2 = this;
@@ -40,13 +40,17 @@ void Motor::set_speed(int speed) { spd = speed; ledcWrite(spd_pin, speed); }
 void Motor::set_direction(int direction) { dir = direction; digitalWrite(dir_pin, dir); }
 void Motor::toggle() { dir ^= 1; digitalWrite(dir_pin, dir); }
 
-void IRAM_ATTR Motor::handle_pulse() {
+void Motor::handle_pulse() {
   unsigned long current_time = micros();
   if (current_time - last_pulse_time >= debounce_delay) {
     pulse_interval = current_time - last_pulse_time;
     last_pulse_time = current_time;
     cnt = (cnt + 1) % teeth;
   }
+}
+
+void Motor::stop() {
+  spd = 0;
 }
 
 float Motor::rad() {
@@ -72,21 +76,21 @@ void Motor::count_() {
   }
 }
 
-void Motor::photoISR1() {//wtf?
+void IRAM_ATTR Motor::photoISR1() {//wtf?
   if (motor1 != nullptr) {
     motor1->handle_pulse();
   }
 }
 
-void Motor::photoISR1() {//wtf?
+void IRAM_ATTR Motor::btnISR1() {//wtf?
   if (motor1 != nullptr) {
-    motor1->handle_pulse();
+    motor1->stop();
   }
 }
 
-void Motor::photoISR1() {//wtf?
+void IRAM_ATTR Motor::btnISR2() {//wtf?
   if (motor1 != nullptr) {
-    motor1->handle_pulse();
+    motor1->stop();
   }
 }
 
@@ -95,6 +99,10 @@ void Motor::sensorISR2() {
     motor2->toggle();
   }
 }
+
+// int Motor::mission(int degree) {
+
+// }
 
 void Motor::DEBUG() {
   // Serial.print("spd:: ");
@@ -107,6 +115,8 @@ void Motor::DEBUG() {
   Serial.println(cnt);
   // Serial.print("photo:: ");
   // Serial.println(digitalRead(sensor_pin));
+  Serial.print("btn1:: ");
+  Serial.println(digitalRead(btn_pin1));
 }
 
 #endif

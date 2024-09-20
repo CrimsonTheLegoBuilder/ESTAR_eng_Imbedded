@@ -49,8 +49,7 @@ int memoryPrint() {
 const EventBits_t xDisturbanceDetected = 0x01;
 SemaphoreHandle_t xSemaphore = NULL;
 
-// extern Motor motor1_;
-// extern Motor motor2_;
+TurntableState_t TurntableState = STATE_IDLE;
 
 void setup() {
   Serial.begin(9600);
@@ -203,6 +202,40 @@ void TaskMotorDEBUG(void *pvParameters __attribute__((unused)) ) {
     vTaskDelayUntil(&xLastWakeTime, xFreq);
   }
 }
+
+void TaskRotateMachine(void *pvParameters __attribute__((unused))) {
+  TickType_t xLastWakeTime;
+  const TickType_t xFreq = pdMS_TO_TICKS(100); // 100ms 주기
+  xLastWakeTime = xTaskGetTickCount();
+
+  for (;;) {
+    switch (TurntableState) {
+      case STATE_IDLE:
+        Serial.println("preparing to spray...");
+        //준비 동작. 압력 채우기 같은 동작들
+        if (1) {
+          TurntableState = STATE_INIT;
+        }
+        break;
+
+      case STATE_INIT:
+        Serial.println("spray position init...");
+
+        break;
+
+      case STATE_ROTATE:
+        break;
+
+      case STATE_COMPLETE:
+        Serial.println("Mission Complete.");
+        TurntableState = STATE_IDLE; // 다시 대기 상태로
+        break;
+    }
+    // 주기적으로 상태를 체크하며 업데이트
+    vTaskDelayUntil(&xLastWakeTime, xFreq);
+  }
+}
+
 
 // void TaskDhtRead(void *pvParameters __attribute__((unused)) ) {
 //   // (void) pvParameters;
