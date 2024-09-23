@@ -24,9 +24,9 @@ Motor motor2_ = Motor(MOTOR2_DIR, MOTOR2_SPD, BTN3_PIN, BTN4_PIN);
 void Motor::begin() {
   if (motor1 == nullptr) {
     motor1 = this;
-    attachInterrupt(digitalPinToInterrupt(sensor_pin), photoISR1, HIGH);
-    attachInterrupt(digitalPinToInterrupt(btn_pin1), btnISR1, HIGH);
-    attachInterrupt(digitalPinToInterrupt(btn_pin2), btnISR2, HIGH);
+    attachInterrupt(digitalPinToInterrupt(sensor_pin), photoISR1, RISING);
+    attachInterrupt(digitalPinToInterrupt(btn_pin1), btnISR1, RISING);
+    attachInterrupt(digitalPinToInterrupt(btn_pin2), btnISR2, RISING);
   }
   else if (motor2 == nullptr) {
     motor2 = this;
@@ -50,7 +50,7 @@ void Motor::handle_pulse() {
 }
 
 void Motor::stop() {
-  spd = 0;
+  set_speed(0);
 }
 
 float Motor::rad() {
@@ -84,7 +84,10 @@ void IRAM_ATTR Motor::photoISR1() {//wtf?
 
 void IRAM_ATTR Motor::btnISR1() {//wtf?
   if (motor1 != nullptr) {
+    //portENTER_CRITICAL_ISR();
     motor1->stop();
+    motor1->direction_changed = true;
+    //portEXIT_CRITICAL_ISR();
   }
 }
 

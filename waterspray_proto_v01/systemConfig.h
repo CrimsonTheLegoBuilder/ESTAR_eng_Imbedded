@@ -24,11 +24,11 @@
 #define READ_DATA 0x83
 
 //macro
-#define FORWARD 1;
-#define REVERSE -1;
+#define FORWARD 1
+#define REVERSE -1
 
-#define CW 1;
-#define CCW -1;
+#define CW 0
+#define CCW 1
 
 typedef long long ll;
 typedef double ld;
@@ -47,9 +47,16 @@ enum EventType {
 typedef enum {
   STATE_IDLE,
   STATE_INIT,
+  STATE_HOMEBUMP,
   STATE_ROTATE,
-  STATE_COMPLETE
+  STATE_COMPLETE,
 } TurntableState_t;
+
+typedef enum {
+  EVENT_HOMEBUMP_FIRST,
+  EVENT_ROTATE_CW,
+  EVENT_HOMEBUMP_SECOND,
+} ButtonEvent_t;
 
 const unsigned long debounce_delay = 200;
 

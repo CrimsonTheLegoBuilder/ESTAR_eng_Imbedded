@@ -1,5 +1,6 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+#include <freertos/timers.h>
 #include <freertos/semphr.h>
 #include "EEPROM.h"
 #include "systemConfig.h"
@@ -50,6 +51,17 @@ const EventBits_t xDisturbanceDetected = 0x01;
 SemaphoreHandle_t xSemaphore = NULL;
 
 TurntableState_t TurntableState = STATE_IDLE;
+ButtonEvent_t ButtonEvent = EVENT_HOMEBUMP_FIRST;
+
+hw_timer_t *timer = NULL;
+portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
+void IRAM_ATTR motor1CwTimer() {
+  portENTER_CRITICAL_ISR(&timerMux);
+  motor1_.stop();
+  motor1_.direction_changed = true;
+  //timerEnd(timer);
+  portEXIT_CRITICAL_ISR(&timerMux);
+}
 
 void setup() {
   Serial.begin(9600);
@@ -62,8 +74,8 @@ void setup() {
   motor1_.begin();
   motor2_.begin();
 
-  motor1_.set_direction(1);
-  motor1_.set_speed(255);
+  //motor1_.set_direction(1);
+  motor1_.set_speed(0);
 
   if ( xSemaphore == NULL ) { // Check to confirm that the Serial Semaphore has not already been created.
     xSemaphore = xSemaphoreCreateMutex();  // Create a mutex semaphore we will use to manage the Serial Port
@@ -84,6 +96,15 @@ void setup() {
   Serial.println(xTaskCreate(
     TaskMotorDEBUG,
     "MotorDEBUG",
+    4096,
+    NULL,
+    2,
+    NULL
+  ));
+
+  Serial.println(xTaskCreate(
+    TaskRotateMachine,
+    "RotateMachine",
     4096,
     NULL,
     2,
@@ -213,17 +234,53 @@ void TaskRotateMachine(void *pvParameters __attribute__((unused))) {
       case STATE_IDLE:
         Serial.println("preparing to spray...");
         //준비 동작. 압력 채우기 같은 동작들
+        /*
+        펌프를 동작하는 함수, 분무기 초기화
+        */
         if (1) {
-          TurntableState = STATE_INIT;
+          motor1_.set_direction(CCW);
+          motor1_.set_speed(100);
+          TurntableState = STATE_HOMEBUMP;
         }
         break;
 
-      case STATE_INIT:
+      case STATE_HOMEBUMP:
         Serial.println("spray position init...");
-
+        switch (ButtonEvent) {
+          case EVENT_HOMEBUMP_FIRST:
+            if (digitalRead(motor1_.btn_pin1)) {
+              motor1_.direction_changed = false;
+              motor1_.set_speed(0);
+              motor1_.set_direction(CW);  // CW로 방향 전환
+              motor1_.set_speed(100);      // 아주 천천히 CW로 회전
+              timer = timerBegin(1000000);     // 타이머 0, 80분주, true는 카운터 증가
+              timerAttachInterrupt(timer, &motor1CwTimer); // 타이머 인터럽트 핸들러 설정
+              timerWrite(timer, 1000); // 1000us = 1ms 후 인터럽트 발생
+              timerAlarm(timer, 0, 0, 0);             // 타이머 알람 활성화
+              ButtonEvent = EVENT_ROTATE_CW;
+            }
+            break;
+          case EVENT_ROTATE_CW:
+            if (motor1_.direction_changed) {
+              motor1_.direction_changed = false;
+              motor1_.set_speed(0);
+              motor1_.set_direction(CCW);  // CW로 방향 전환
+              motor1_.set_speed(100);      // 아주 천천히 CW로 회전
+              ButtonEvent = EVENT_HOMEBUMP_SECOND;
+            }
+            break;
+          case EVENT_HOMEBUMP_SECOND:
+            if (digitalRead(motor1_.btn_pin1)) {
+              motor1_.cnt = 0;
+              ButtonEvent = EVENT_HOMEBUMP_FIRST;
+              TurntableState = STATE_ROTATE;
+            }
+            break;
+        }
         break;
-
+        //STATE_HOMEBUMP
       case STATE_ROTATE:
+
         break;
 
       case STATE_COMPLETE:

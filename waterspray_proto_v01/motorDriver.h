@@ -12,8 +12,8 @@ struct Motor {
   int btn_pin1;
   int btn_pin2;
   int sensor_pin;
-  float rpm;
-  int spd, dir;
+  volatile float rpm;
+  volatile int spd, dir;
   volatile int teeth;
   volatile int cnt;
   volatile unsigned long last_pulse_time;
