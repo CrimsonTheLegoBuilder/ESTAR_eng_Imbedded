@@ -19,7 +19,15 @@ struct Motor {
   volatile unsigned long last_pulse_time;
   volatile unsigned long pulse_interval;
   volatile bool direction_changed;
-  //PID pid;
+  int set_point;
+  PID pid;
+    
+  volatile bool debounce_flag;
+  volatile unsigned long last_interrupt_time;
+  
+#ifdef DEBUG 
+  volatile int interrupt_debugger;
+#endif
 
   Motor(int dirPin, int spdPin, int btn1, int btn2, int sensorPin = -1, int t = -1)
   : dir_pin(dirPin), spd_pin(spdPin), btn_pin1(btn1), btn_pin2(btn2) {
@@ -38,10 +46,22 @@ struct Motor {
     last_pulse_time = 0;
     pulse_interval = 0;
     direction_changed = 0;
+    target = 0;
+    pid.init(0, 0, 1e-4, 60, 255);
+
+    debounce_flag = 0;
+    last_interrupt_time = 0;
+
+#ifdef DEBUG 
+    interrupt_debugger = 0;
+#endif
   }
 
   void begin();
   void set_speed(int s = 0);
+  int Motor::get_pow(float speed = 0);
+  float Motor::get_speed(int pow = 0);
+  void Motor::set_speed(float rpm_ = 0);
   void set_direction(int d = 1);
   void toggle();
   float rad();
@@ -57,7 +77,7 @@ struct Motor {
   static Motor* motor1;
   static Motor* motor2;
 
-  void DEBUG();
+  void DEBUG_();
 };
 
 // //object motor 1, 2

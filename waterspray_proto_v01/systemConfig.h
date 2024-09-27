@@ -1,6 +1,8 @@
 #ifndef _SYSTEMCONFIG_H_
 #define _SYSTEMCONFIG_H_
 
+#define DEBUG
+
 //pin map
 #define MOTOR1_DIR 26
 #define MOTOR1_SPD 27
@@ -59,16 +61,19 @@ typedef enum {
 } ButtonEvent_t;
 
 const unsigned long debounce_delay = 200;
+const unsigned long btn_debounce_delay = 1;
 
 const unsigned long pwm_freq = 20000;
 const unsigned long pwm_res = 8;
+
+// const unsigned long debounce_delay = 5; // 5ms debounce
 
 #endif
 
 
 /*
 
-아래에 있는 코드는 예시로 기록되어있는 코드입니다.
+아래에 있는 코드는 예시로 기록되어 있는 코드입니다.
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>

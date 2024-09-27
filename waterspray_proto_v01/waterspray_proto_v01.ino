@@ -52,13 +52,14 @@ SemaphoreHandle_t xSemaphore = NULL;
 
 TurntableState_t TurntableState = STATE_IDLE;
 ButtonEvent_t ButtonEvent = EVENT_HOMEBUMP_FIRST;
+volatile bool f;
 
 hw_timer_t *timer = NULL;
 portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
 void IRAM_ATTR motor1CwTimer() {
   portENTER_CRITICAL_ISR(&timerMux);
-  motor1_.stop();
-  motor1_.direction_changed = true;
+  //motor1_.stop();
+  f = 1;
   //timerEnd(timer);
   portEXIT_CRITICAL_ISR(&timerMux);
 }
@@ -74,8 +75,8 @@ void setup() {
   motor1_.begin();
   motor2_.begin();
 
-  //motor1_.set_direction(1);
-  motor1_.set_speed(0);
+  motor1_.set_direction(CW);
+  motor1_.set_speed(60);
 
   if ( xSemaphore == NULL ) { // Check to confirm that the Serial Semaphore has not already been created.
     xSemaphore = xSemaphoreCreateMutex();  // Create a mutex semaphore we will use to manage the Serial Port
@@ -102,14 +103,14 @@ void setup() {
     NULL
   ));
 
-  Serial.println(xTaskCreate(
-    TaskRotateMachine,
-    "RotateMachine",
-    4096,
-    NULL,
-    2,
-    NULL
-  ));
+  // Serial.println(xTaskCreate(
+  //   TaskRotateMachine,
+  //   "RotateMachine",
+  //   4096,
+  //   NULL,
+  //   2,
+  //   NULL
+  // ));
 
   // Serial.println(xTaskCreate(
   //   TaskDhtRead,
@@ -200,7 +201,7 @@ void TaskMotorControl(void *pvParameters __attribute__((unused)) ) {
   for (;;) {
     if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
       motor1_.count_();
-      // motor1_.DEBUG();
+      // motor1_.DEBUG_();
       xSemaphoreGive(xSemaphore);
     }
     // Serial.println(memoryPrint());
@@ -211,12 +212,12 @@ void TaskMotorControl(void *pvParameters __attribute__((unused)) ) {
 void TaskMotorDEBUG(void *pvParameters __attribute__((unused)) ) {
   // (void) pvParameters;
   TickType_t xLastWakeTime;
-  const TickType_t xFreq = pdMS_TO_TICKS(50);
+  const TickType_t xFreq = pdMS_TO_TICKS(500);
   xLastWakeTime = xTaskGetTickCount();
   for (;;) {
     if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
       // motor1_.count_();
-      motor1_.DEBUG();
+      motor1_.DEBUG_();
       xSemaphoreGive(xSemaphore);
     }
     // Serial.println(memoryPrint());
@@ -238,8 +239,10 @@ void TaskRotateMachine(void *pvParameters __attribute__((unused))) {
         펌프를 동작하는 함수, 분무기 초기화
         */
         if (1) {
+          motor1_.set_speed(0);
+          delay(2);
           motor1_.set_direction(CCW);
-          motor1_.set_speed(100);
+          motor1_.set_speed(150);
           TurntableState = STATE_HOMEBUMP;
         }
         break;
@@ -248,28 +251,48 @@ void TaskRotateMachine(void *pvParameters __attribute__((unused))) {
         Serial.println("spray position init...");
         switch (ButtonEvent) {
           case EVENT_HOMEBUMP_FIRST:
+            Serial.println("preparing to spray... EVENT_HOMEBUMP_FIRST");
             if (digitalRead(motor1_.btn_pin1)) {
               motor1_.direction_changed = false;
               motor1_.set_speed(0);
+              delay(2);
               motor1_.set_direction(CW);  // CW로 방향 전환
-              motor1_.set_speed(100);      // 아주 천천히 CW로 회전
-              timer = timerBegin(1000000);     // 타이머 0, 80분주, true는 카운터 증가
+              timer = timerBegin(100000000);     // 타이머 0, 80분주, true는 카운터 증가
+              //timerWrite(timer, 100); // 1000us = 1ms 후 인터럽트 발생
               timerAttachInterrupt(timer, &motor1CwTimer); // 타이머 인터럽트 핸들러 설정
-              timerWrite(timer, 1000); // 1000us = 1ms 후 인터럽트 발생
-              timerAlarm(timer, 0, 0, 0);             // 타이머 알람 활성화
+              //timerAlarm(timer, 0, 0, 0);             // 타이머 알람 활성화
+              f = 0;
               ButtonEvent = EVENT_ROTATE_CW;
+              motor1_.set_speed(100);      // 아주 천천히 CW로 회전
+              // timerStart(timer);
+              timerAlarm(timer, 1000000, false, 0);
+              //timerAlarmEnable(timer);
             }
             break;
           case EVENT_ROTATE_CW:
-            if (motor1_.direction_changed) {
+            Serial.println("preparing to spray... EVENT_ROTATE_CW");
+            Serial.print("motor1_.direction_changed: ");
+            Serial.println(motor1_.direction_changed);
+            Serial.print("f: ");
+            Serial.println(f);
+
+            if (motor1_.spd < 10) {
+              motor1_.set_direction(CW);  // CW로 방향 전환
+              motor1_.set_speed(100);
+              break;
+            }
+            if (f) {
+              timerEnd(timer);
               motor1_.direction_changed = false;
               motor1_.set_speed(0);
+              delay(2);
               motor1_.set_direction(CCW);  // CW로 방향 전환
               motor1_.set_speed(100);      // 아주 천천히 CW로 회전
               ButtonEvent = EVENT_HOMEBUMP_SECOND;
             }
             break;
           case EVENT_HOMEBUMP_SECOND:
+            Serial.println("preparing to spray... EVENT_HOMEBUMP_SECOND");
             if (digitalRead(motor1_.btn_pin1)) {
               motor1_.cnt = 0;
               ButtonEvent = EVENT_HOMEBUMP_FIRST;
@@ -280,6 +303,89 @@ void TaskRotateMachine(void *pvParameters __attribute__((unused))) {
         break;
         //STATE_HOMEBUMP
       case STATE_ROTATE:
+        Serial.println("rotating");
+
+        /*
+        
+            current_position = motor1_.degree();  // 현재 각도 측정
+
+    motorPID.Compute();  // PID 계산
+
+    // 가속도 제어를 통해 급격한 속도 변화를 방지
+    if (abs(output_speed - motor1_.spd) > accel_rate) {
+        if (output_speed > motor1_.spd) {
+            motor1_.set_speed(motor1_.spd + accel_rate);  // 서서히 가속
+        } else {
+            motor1_.set_speed(motor1_.spd - accel_rate);  // 서서히 감속
+        }
+    } else {
+        motor1_.set_speed(output_speed);  // 이미 가속도가 맞으면 그대로 설정
+    }
+
+
+    #include <Arduino.h>
+#include "pidControl.h"
+#include "FreeRTOS.h"
+
+float target_position = 180.0;  // 목표 위치
+float current_position = 0.0;   // 현재 위치
+float output_speed = 0.0;       // PID 계산 후 얻은 속도
+float max_speed = 255.0;        // 모터의 최대 속도
+float accel_rate = 5.0;         // 가속도 (속도를 올리는 비율)
+
+// PID 객체 선언
+PID motorPID(&current_position, &output_speed, &target_position, Kp, Ki, Kd, DIRECT);
+
+// 모터 상태
+int motor_speed = 0;            // 현재 모터 속도
+
+// FreeRTOS 태스크 핸들 선언
+TaskHandle_t PIDTaskHandle = NULL;
+TaskHandle_t SpeedControlTaskHandle = NULL;
+
+// PID 제어 태스크
+void PIDTask(void *pvParameters) {
+    motorPID.SetMode(AUTOMATIC);  // PID 자동 제어 모드
+    motorPID.SetOutputLimits(-max_speed, max_speed);  // PID 출력 값 제한
+    motorPID.SetSampleTime(10);  // PID 샘플 타임 설정 (10ms)
+
+    while (1) {
+        current_position = motor1_.degree();  // 현재 위치 업데이트
+        motorPID.Compute();  // PID 계산
+        vTaskDelay(10 / portTICK_PERIOD_MS);  // 10ms마다 실행
+    }
+}
+
+// 가속도 제어 태스크
+void SpeedControlTask(void *pvParameters) {
+    while (1) {
+        // PID로부터 계산된 출력 속도와 현재 모터 속도의 차이를 비교하여 가속도 제어
+        if (abs(output_speed - motor_speed) > accel_rate) {
+            if (output_speed > motor_speed) {
+                motor_speed += accel_rate;  // 서서히 가속
+            } else {
+                motor_speed -= accel_rate;  // 서서히 감속
+            }
+        } else {
+            motor_speed = output_speed;  // 가속도 범위 내에서 속도 설정
+        }
+        motor1_.set_speed(motor_speed);  // 모터 속도 설정
+        vTaskDelay(10 / portTICK_PERIOD_MS);  // 10ms마다 실행
+    }
+}
+
+void setup() {
+    // FreeRTOS 태스크 생성
+    xTaskCreate(PIDTask, "PID Control Task", 2048, NULL, 1, &PIDTaskHandle);
+    xTaskCreate(SpeedControlTask, "Speed Control Task", 2048, NULL, 1, &SpeedControlTaskHandle);
+}
+
+void loop() {
+    // FreeRTOS는 loop()가 아닌 태스크에서 실행되므로 loop는 비워둡니다.
+}
+        
+        */
+
 
         break;
 
@@ -412,3 +518,11 @@ void TaskRotateMachine(void *pvParameters __attribute__((unused))) {
 //     vTaskDelayUntil(&xLastWakeTime, xFreq);
 //   }
 // }
+
+
+
+/*
+
+C:\Users\user\AppData\Local\Temp\arduino\sketches\
+
+*/

@@ -3,14 +3,14 @@
 
 #include "pidControl.h"
 
-PID::PID(ld kp, ld ki, ld kd, ld dt, ld lo, ld hi) : params(kp, ki, kd, dt, lo, hi) {
+PID::PID(ld ku, ld tu, ld dt, ld lo, ld hi) : params(ku, tu, dt, lo, hi) {
   integral = 0;
   prev_err = 0;
   derivative = 0;
 }
 
-void PID::init(ld kp, ld ki, ld kd, ld dt, ld lo, ld hi) {
-  params = gain(kp, ki, kd, dt, lo, hi);
+void PID::init(ld ku, ld tu, ld dt, ld lo, ld hi) {
+  params = gain(ku, tu, dt, lo, hi);
   integral = 0;
   prev_err = 0;
   derivative = 0;
@@ -56,7 +56,7 @@ ld PID::pid_control(ld setpoint, ld pv) {
   return pid_converter(output);
 }
 
-void PID::DEBUG() {
+void PID::DEBUG_() {
   Serial.print("Debug:: Kp: ");
   Serial.print(params.Kp);
   Serial.print(" Ki: ");
