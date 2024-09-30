@@ -13,5 +13,6 @@ int set_brightness(int j, int x, int b, int interval = 12);
 void wavy(int x);
 void wavy();
 void wavy_analog(int x);
+void on_();
 
 #endif

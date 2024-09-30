@@ -78,6 +78,14 @@ void wavy() {
   J_ = (J_ + 1) % INTERVAL;
 }
 
+void on_() {
+  for (int j = 0; j < NUMPIXELS; j++) {
+    pixels.setPixelColor(j, pixels.Color(255, 255, 255));
+  }
+  Serial.println(" ");
+  pixels.show();
+}
+
 // void wave_seg(int J, int I) {
 //   for (int j = 0; j < NUMPIXELS; j++) {
 //     if (j == J) pixels.setPixelColor(j, pixels.Color((I == 1) * 255, (I == 0) * 255, (I == 2) * 255));

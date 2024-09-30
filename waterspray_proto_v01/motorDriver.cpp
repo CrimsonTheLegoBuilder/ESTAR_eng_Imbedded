@@ -59,7 +59,10 @@ void Motor::toggle() { dir ^= 1; digitalWrite(dir_pin, dir); }
 
 void Motor::set_point(int point) { target = point; }
 
-
+float Motor::cal_speed(float cur) {
+  float pid_out = pid::pid_control(target, cur);
+  return min(pid.params.low_limit, max(pid.params.high_limit, pid_out));
+}
 
 void Motor::handle_pulse() {
   unsigned long current_time = micros();

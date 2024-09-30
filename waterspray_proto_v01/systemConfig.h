@@ -58,6 +58,7 @@ typedef enum {
   EVENT_HOMEBUMP_FIRST,
   EVENT_ROTATE_CW,
   EVENT_HOMEBUMP_SECOND,
+  EVENT_ROTATE_CCW,
 } ButtonEvent_t;
 
 const unsigned long debounce_delay = 200;

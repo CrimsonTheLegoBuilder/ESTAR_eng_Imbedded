@@ -59,9 +59,9 @@ struct Motor {
 
   void begin();
   void set_speed(int s = 0);
-  int Motor::get_pow(float speed = 0);
-  float Motor::get_speed(int pow = 0);
-  void Motor::set_speed(float rpm_ = 0);
+  int get_pow(float speed = 0);
+  float get_speed(int pow = 0);
+  void set_speed(float rpm_ = 0);
   void set_direction(int d = 1);
   void toggle();
   float rad();

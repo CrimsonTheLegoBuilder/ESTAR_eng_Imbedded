@@ -304,89 +304,28 @@ void TaskRotateMachine(void *pvParameters __attribute__((unused))) {
         //STATE_HOMEBUMP
       case STATE_ROTATE:
         Serial.println("rotating");
-
         /*
-        
-            current_position = motor1_.degree();  // 현재 각도 측정
-
-    motorPID.Compute();  // PID 계산
-
-    // 가속도 제어를 통해 급격한 속도 변화를 방지
-    if (abs(output_speed - motor1_.spd) > accel_rate) {
-        if (output_speed > motor1_.spd) {
-            motor1_.set_speed(motor1_.spd + accel_rate);  // 서서히 가속
-        } else {
-            motor1_.set_speed(motor1_.spd - accel_rate);  // 서서히 감속
-        }
-    } else {
-        motor1_.set_speed(output_speed);  // 이미 가속도가 맞으면 그대로 설정
-    }
-
-
-    #include <Arduino.h>
-#include "pidControl.h"
-#include "FreeRTOS.h"
-
-float target_position = 180.0;  // 목표 위치
-float current_position = 0.0;   // 현재 위치
-float output_speed = 0.0;       // PID 계산 후 얻은 속도
-float max_speed = 255.0;        // 모터의 최대 속도
-float accel_rate = 5.0;         // 가속도 (속도를 올리는 비율)
-
-// PID 객체 선언
-PID motorPID(&current_position, &output_speed, &target_position, Kp, Ki, Kd, DIRECT);
-
-// 모터 상태
-int motor_speed = 0;            // 현재 모터 속도
-
-// FreeRTOS 태스크 핸들 선언
-TaskHandle_t PIDTaskHandle = NULL;
-TaskHandle_t SpeedControlTaskHandle = NULL;
-
-// PID 제어 태스크
-void PIDTask(void *pvParameters) {
-    motorPID.SetMode(AUTOMATIC);  // PID 자동 제어 모드
-    motorPID.SetOutputLimits(-max_speed, max_speed);  // PID 출력 값 제한
-    motorPID.SetSampleTime(10);  // PID 샘플 타임 설정 (10ms)
-
-    while (1) {
-        current_position = motor1_.degree();  // 현재 위치 업데이트
-        motorPID.Compute();  // PID 계산
-        vTaskDelay(10 / portTICK_PERIOD_MS);  // 10ms마다 실행
-    }
-}
-
-// 가속도 제어 태스크
-void SpeedControlTask(void *pvParameters) {
-    while (1) {
-        // PID로부터 계산된 출력 속도와 현재 모터 속도의 차이를 비교하여 가속도 제어
-        if (abs(output_speed - motor_speed) > accel_rate) {
-            if (output_speed > motor_speed) {
-                motor_speed += accel_rate;  // 서서히 가속
-            } else {
-                motor_speed -= accel_rate;  // 서서히 감속
-            }
-        } else {
-            motor_speed = output_speed;  // 가속도 범위 내에서 속도 설정
-        }
-        motor1_.set_speed(motor_speed);  // 모터 속도 설정
-        vTaskDelay(10 / portTICK_PERIOD_MS);  // 10ms마다 실행
-    }
-}
-
-void setup() {
-    // FreeRTOS 태스크 생성
-    xTaskCreate(PIDTask, "PID Control Task", 2048, NULL, 1, &PIDTaskHandle);
-    xTaskCreate(SpeedControlTask, "Speed Control Task", 2048, NULL, 1, &SpeedControlTaskHandle);
-}
-
-void loop() {
-    // FreeRTOS는 loop()가 아닌 태스크에서 실행되므로 loop는 비워둡니다.
-}
-        
+        회전 동작 초기:
+        PID 계산을 돌린 후 : motor.cal_speed(speed);
+        안정적으로 동작하는 속도로 환산한다.
+        방향을 판단한다.
         */
 
+        switch (ButtonEvent) {
+          case EVENT_ROTATE_CW:
+          /*
+          방향을 판단한 이후의 과정:
+          방향을 지정한다.
+          움직이는 함수를 동작한다.
+          인터럽트가 일어났거나 목표 각도에 동작한 경우? -> 방향을 전환 후 cnt 초기화
 
+          필요한 과정: 속도 환산, PID 제어기 출력값 가공.
+          */
+          break;
+
+          case EVENT_ROTATE_CCW:
+          break;
+        }
         break;
 
       case STATE_COMPLETE:
@@ -520,9 +459,91 @@ void loop() {
 // }
 
 
-
+//.elf 로그 저장되는 경로
 /*
 
 C:\Users\user\AppData\Local\Temp\arduino\sketches\
 
 */
+
+//PID 예제
+        /*
+        
+            current_position = motor1_.degree();  // 현재 각도 측정
+
+    motorPID.Compute();  // PID 계산
+
+    // 가속도 제어를 통해 급격한 속도 변화를 방지
+    if (abs(output_speed - motor1_.spd) > accel_rate) {
+        if (output_speed > motor1_.spd) {
+            motor1_.set_speed(motor1_.spd + accel_rate);  // 서서히 가속
+        } else {
+            motor1_.set_speed(motor1_.spd - accel_rate);  // 서서히 감속
+        }
+    } else {
+        motor1_.set_speed(output_speed);  // 이미 가속도가 맞으면 그대로 설정
+    }
+
+
+    #include <Arduino.h>
+#include "pidControl.h"
+#include "FreeRTOS.h"
+
+float target_position = 180.0;  // 목표 위치
+float current_position = 0.0;   // 현재 위치
+float output_speed = 0.0;       // PID 계산 후 얻은 속도
+float max_speed = 255.0;        // 모터의 최대 속도
+float accel_rate = 5.0;         // 가속도 (속도를 올리는 비율)
+
+// PID 객체 선언
+PID motorPID(&current_position, &output_speed, &target_position, Kp, Ki, Kd, DIRECT);
+
+// 모터 상태
+int motor_speed = 0;            // 현재 모터 속도
+
+// FreeRTOS 태스크 핸들 선언
+TaskHandle_t PIDTaskHandle = NULL;
+TaskHandle_t SpeedControlTaskHandle = NULL;
+
+// PID 제어 태스크
+void PIDTask(void *pvParameters) {
+    motorPID.SetMode(AUTOMATIC);  // PID 자동 제어 모드
+    motorPID.SetOutputLimits(-max_speed, max_speed);  // PID 출력 값 제한
+    motorPID.SetSampleTime(10);  // PID 샘플 타임 설정 (10ms)
+
+    while (1) {
+        current_position = motor1_.degree();  // 현재 위치 업데이트
+        motorPID.Compute();  // PID 계산
+        vTaskDelay(10 / portTICK_PERIOD_MS);  // 10ms마다 실행
+    }
+}
+
+// 가속도 제어 태스크
+void SpeedControlTask(void *pvParameters) {
+    while (1) {
+        // PID로부터 계산된 출력 속도와 현재 모터 속도의 차이를 비교하여 가속도 제어
+        if (abs(output_speed - motor_speed) > accel_rate) {
+            if (output_speed > motor_speed) {
+                motor_speed += accel_rate;  // 서서히 가속
+            } else {
+                motor_speed -= accel_rate;  // 서서히 감속
+            }
+        } else {
+            motor_speed = output_speed;  // 가속도 범위 내에서 속도 설정
+        }
+        motor1_.set_speed(motor_speed);  // 모터 속도 설정
+        vTaskDelay(10 / portTICK_PERIOD_MS);  // 10ms마다 실행
+    }
+}
+
+void setup() {
+    // FreeRTOS 태스크 생성
+    xTaskCreate(PIDTask, "PID Control Task", 2048, NULL, 1, &PIDTaskHandle);
+    xTaskCreate(SpeedControlTask, "Speed Control Task", 2048, NULL, 1, &SpeedControlTaskHandle);
+}
+
+void loop() {
+    // FreeRTOS는 loop()가 아닌 태스크에서 실행되므로 loop는 비워둡니다.
+}
+        
+        */
