@@ -77,6 +77,7 @@ void setup() {
 
   motor1_.set_direction(CW);
   motor1_.set_speed(60);
+  motor1_.target = PI * 0.666666;
 
   if ( xSemaphore == NULL ) { // Check to confirm that the Serial Semaphore has not already been created.
     xSemaphore = xSemaphoreCreateMutex();  // Create a mutex semaphore we will use to manage the Serial Port
@@ -85,14 +86,14 @@ void setup() {
 
   Serial.println("start");
 
-  Serial.println(xTaskCreate(
-    TaskMotorControl,
-    "MotorControl",
-    4096,
-    NULL,
-    2,
-    NULL
-  ));
+  // Serial.println(xTaskCreate(
+  //   TaskMotorControl,
+  //   "MotorControl",
+  //   4096,
+  //   NULL,
+  //   2,
+  //   NULL
+  // ));
 
   Serial.println(xTaskCreate(
     TaskMotorDEBUG,
@@ -103,14 +104,14 @@ void setup() {
     NULL
   ));
 
-  // Serial.println(xTaskCreate(
-  //   TaskRotateMachine,
-  //   "RotateMachine",
-  //   4096,
-  //   NULL,
-  //   2,
-  //   NULL
-  // ));
+  Serial.println(xTaskCreate(
+    TaskRotateMachine,
+    "RotateMachine",
+    4096,
+    NULL,
+    2,
+    NULL
+  ));
 
   // Serial.println(xTaskCreate(
   //   TaskDhtRead,
@@ -257,7 +258,7 @@ void TaskRotateMachine(void *pvParameters __attribute__((unused))) {
               motor1_.set_speed(0);
               delay(2);
               motor1_.set_direction(CW);  // CW로 방향 전환
-              timer = timerBegin(100000000);     // 타이머 0, 80분주, true는 카운터 증가
+              timer = timerBegin(1000000);     // 타이머 0, 80분주, true는 카운터 증가
               //timerWrite(timer, 100); // 1000us = 1ms 후 인터럽트 발생
               timerAttachInterrupt(timer, &motor1CwTimer); // 타이머 인터럽트 핸들러 설정
               //timerAlarm(timer, 0, 0, 0);             // 타이머 알람 활성화
@@ -265,7 +266,7 @@ void TaskRotateMachine(void *pvParameters __attribute__((unused))) {
               ButtonEvent = EVENT_ROTATE_CW;
               motor1_.set_speed(100);      // 아주 천천히 CW로 회전
               // timerStart(timer);
-              timerAlarm(timer, 1000000, false, 0);
+              timerAlarm(timer, 2000000, false, 0);
               //timerAlarmEnable(timer);
             }
             break;
@@ -297,6 +298,7 @@ void TaskRotateMachine(void *pvParameters __attribute__((unused))) {
               motor1_.cnt = 0;
               ButtonEvent = EVENT_HOMEBUMP_FIRST;
               TurntableState = STATE_ROTATE;
+              motor1_.set_speed(150);
             }
             break;
         }
@@ -304,28 +306,57 @@ void TaskRotateMachine(void *pvParameters __attribute__((unused))) {
         //STATE_HOMEBUMP
       case STATE_ROTATE:
         Serial.println("rotating");
+
+        /*
+        
+        PID 구현은 일단 다음으로 미루고 생각해보기. 보정까지 고려하면 꽤 오래 걸림. 이 수를 세므로 멈춰야하는 시점까지 얼마나 남았나를 계산 가능함.
+
+        각도 환산 함수가 필요함. cnt를 센 건 그 자체로 각도로 바꿀 수 있고, 마지막으로 출력한 속도 값과 인터럽트로부터 흐른 시간을 토대로 추가로 지나온 각도를 알 수 있음.
+        남은 각도로 출력을 어느 정도로 줄이면서 돌려야하는지를 계산.
+
+        */
+
         /*
         회전 동작 초기:
         PID 계산을 돌린 후 : motor.cal_speed(speed);
-        안정적으로 동작하는 속도로 환산한다.
+        안정적으로 동작하는 속도로 환산한다. -> 일단 출력값을 그대로 각도 변환 명령으로 사용
         방향을 판단한다.
         */
 
-        switch (ButtonEvent) {
-          case EVENT_ROTATE_CW:
-          /*
-          방향을 판단한 이후의 과정:
-          방향을 지정한다.
-          움직이는 함수를 동작한다.
-          인터럽트가 일어났거나 목표 각도에 동작한 경우? -> 방향을 전환 후 cnt 초기화
+        // switch (ButtonEvent) {
+        //   case EVENT_ROTATE_CW:
+        //   /*
+        //   방향을 판단한 이후의 과정:
+        //   방향을 지정한다.
+        //   움직이는 함수를 동작한다.
+        //   인터럽트가 일어났거나 목표 각도에 동작한 경우? -> 방향을 전환 후 cnt 초기화
 
-          필요한 과정: 속도 환산, PID 제어기 출력값 가공.
-          */
-          break;
+        //   필요한 과정: 속도 환산, PID 제어기 출력값 가공.
+        //   */
+        //   break;
 
-          case EVENT_ROTATE_CCW:
+        //   case EVENT_ROTATE_CCW:
+        //   break;
+        // }
+
+        Serial.print("degree: ");
+        Serial.println(motor1_.degree(), 6);
+        if (digitalRead(motor1_.btn_pin1)) {
+          motor1_.set_speed(0);
+          delay(10);
+          motor1_.cnt = 0;
+          motor1_.set_direction(CW);
+          motor1_.set_speed(150);
           break;
         }
+        if (motor1_.degree() >= motor1_.target) {
+          motor1_.set_speed(0);
+          delay(10);
+          motor1_.cnt = 0;
+          motor1_.toggle();
+          motor1_.set_speed(150);
+        }
+
         break;
 
       case STATE_COMPLETE:
@@ -545,5 +576,41 @@ void setup() {
 void loop() {
     // FreeRTOS는 loop()가 아닌 태스크에서 실행되므로 loop는 비워둡니다.
 }
+
+      case STATE_ROTATE:
+        Serial.println("rotating");
+
         
+        
+        PID 구현은 일단 다음으로 미루고 생각해보기. 보정까지 고려하면 꽤 오래 걸림. 이 수를 세므로 멈춰야하는 시점까지 얼마나 남았나를 계산 가능함.
+
+        각도 환산 함수가 필요함. cnt를 센 건 그 자체로 각도로 바꿀 수 있고, 마지막으로 출력한 속도 값과 인터럽트로부터 흐른 시간을 토대로 추가로 지나온 각도를 알 수 있음.
+        남은 각도로 출력을 어느 정도로 줄이면서 돌려야하는지를 계산.
+
+        
+
+        
+        회전 동작 초기:
+        PID 계산을 돌린 후 : motor.cal_speed(speed);
+        안정적으로 동작하는 속도로 환산한다. -> 일단 출력값을 그대로 각도 변환 명령으로 사용
+        방향을 판단한다.
+
+        switch (ButtonEvent) {
+          case EVENT_ROTATE_CW:
+          
+          방향을 판단한 이후의 과정:
+          방향을 지정한다.
+          움직이는 함수를 동작한다.
+          인터럽트가 일어났거나 목표 각도에 동작한 경우? -> 방향을 전환 후 cnt 초기화
+
+          필요한 과정: 속도 환산, PID 제어기 출력값 가공.
+          
+          break;
+
+          case EVENT_ROTATE_CCW:
+          break;
+        }
+        break;
+
+
         */

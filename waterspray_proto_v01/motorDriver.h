@@ -19,7 +19,7 @@ struct Motor {
   volatile unsigned long last_pulse_time;
   volatile unsigned long pulse_interval;
   volatile bool direction_changed;
-  int set_point;
+  float target;
   PID pid;
     
   volatile bool debounce_flag;
@@ -64,6 +64,8 @@ struct Motor {
   void set_speed(float rpm_ = 0);
   void set_direction(int d = 1);
   void toggle();
+  void set_point(float point);
+  float cal_speed(float cur);
   float rad();
   float degree();
   void count_();

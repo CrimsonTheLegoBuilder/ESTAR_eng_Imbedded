@@ -1,7 +1,11 @@
 #ifndef _SYSTEMCONFIG_H_
 #define _SYSTEMCONFIG_H_
 
+#include "Arduino.h"
+
 #define DEBUG
+
+#define TOL 1e-7
 
 //pin map
 #define MOTOR1_DIR 26
@@ -68,6 +72,9 @@ const unsigned long pwm_freq = 20000;
 const unsigned long pwm_res = 8;
 
 // const unsigned long debounce_delay = 5; // 5ms debounce
+
+ld norm(ld t);
+float norm(float t);
 
 #endif
 

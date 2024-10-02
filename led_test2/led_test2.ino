@@ -9,8 +9,8 @@ void setup() {
 }
 
 void loop() {  
-  // wavy();
-  on_();
+  wavy();
+  //on_();
   delay(50);
 }  
 

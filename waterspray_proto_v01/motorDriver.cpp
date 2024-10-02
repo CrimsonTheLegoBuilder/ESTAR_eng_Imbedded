@@ -57,10 +57,10 @@ void Motor::set_direction(int direction) { dir = direction; digitalWrite(dir_pin
 
 void Motor::toggle() { dir ^= 1; digitalWrite(dir_pin, dir); }
 
-void Motor::set_point(int point) { target = point; }
+void Motor::set_point(float point) { target = point; }
 
 float Motor::cal_speed(float cur) {
-  float pid_out = pid::pid_control(target, cur);
+  ld pid_out = pid.pid_control(target, cur);
   return min(pid.params.low_limit, max(pid.params.high_limit, pid_out));
 }
 
@@ -82,7 +82,10 @@ float Motor::rad() {
 }
 
 float Motor::degree() {
-  return 360 * cnt / teeth;
+  unsigned long current_time = micros();
+  unsigned long dt = current_time - last_pulse_time;
+  float alpha = dt / 1000000. * get_speed(spd) / 60.;
+  return norm(2 * PI * ((ld)cnt / teeth + alpha));
 }
 
 void Motor::count_() {
