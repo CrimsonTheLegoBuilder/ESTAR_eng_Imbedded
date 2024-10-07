@@ -1,6 +1,6 @@
 #ifndef _AIRPUMP_H_
 #define _AIRPUMP_H_
 
-int pressure_check(int val, int high, int low);
+int pressure_check(float val, float high, float low);
 
 #endif

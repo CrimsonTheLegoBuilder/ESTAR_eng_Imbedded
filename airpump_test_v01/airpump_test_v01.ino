@@ -7,7 +7,7 @@
 #define WATER_LEVEL 7
 
 bool air, sol1, sol2;
-int high, low;
+float high, low;
 static bool force_shut;
 
 void setup() {
@@ -21,8 +21,8 @@ void setup() {
   air = 1;
   sol1 = 0;
   sol2 = 0;
-  high = 700;
-  low = 300;
+  high = 7.;
+  low = 4.;
   digitalWrite(AIRPUMP, air);
   digitalWrite(SOLVALVE1, sol1);
   digitalWrite(SOLVALVE2, sol2);
@@ -99,7 +99,7 @@ void loop() {
   Serial.print(press);
   Serial.print(" ");
   Serial.println(press / 100.);
-  int f = pressure_check(V, high, low);
+  int f = pressure_check(press / 100., high, low);
   if (!force_shut && f == 1) {
     air = 1;
   }
