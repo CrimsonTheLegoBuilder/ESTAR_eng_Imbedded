@@ -64,6 +64,26 @@ float Motor::cal_speed(float cur) {
   return min(pid.params.low_limit, max(pid.params.high_limit, pid_out));
 }
 
+
+void Motor::set_speed_limit(int speed, float the, float ratio) {
+  if (the < target * ratio) {
+    int r = the / (target * ratio) * 100;
+    spd = map(r, 0, 100, 80, speed);
+    ledcWrite(spd_pin, spd);
+    return;
+  }
+  if (target - the < target * ratio) {
+    int r = (target - the) / (target * ratio) * 100;
+    spd = map(r, 0, 100, 80, speed);
+    ledcWrite(spd_pin, spd);
+    return;
+  }
+  spd = speed;
+  ledcWrite(spd_pin, spd);
+  return;
+}
+
+
 void Motor::handle_pulse() {
   unsigned long current_time = micros();
   if (current_time - last_pulse_time >= debounce_delay) {
@@ -78,14 +98,19 @@ void Motor::stop() {
 }
 
 float Motor::rad() {
-  return 2 * PI * cnt / teeth;
+  unsigned long current_time = micros();
+  unsigned long dt = current_time - last_pulse_time;
+  float alpha = dt / 1000000. * get_speed(spd) / 60.;
+  //if (interrupt_flag) return rad_ = 0;
+  return rad_ = norm(2 * PI * ((ld)cnt / teeth + alpha));
 }
 
 float Motor::degree() {
   unsigned long current_time = micros();
   unsigned long dt = current_time - last_pulse_time;
   float alpha = dt / 1000000. * get_speed(spd) / 60.;
-  return norm(2 * PI * ((ld)cnt / teeth + alpha));
+  //if (interrupt_flag) return rad_ = 0;
+  return rad_ = norm(2 * PI * ((ld)cnt / teeth + alpha));
 }
 
 void Motor::count_() {
@@ -105,6 +130,7 @@ void Motor::count_() {
 
 void IRAM_ATTR Motor::photoISR1() {//wtf?
   if (motor1 != nullptr) {
+    motor1->interrupt_flag = 1;
     motor1->handle_pulse();
   }
 }
@@ -154,14 +180,14 @@ void Motor::DEBUG_() {
   Serial.println(spd);
   Serial.print("dir:: ");
   Serial.println(dir);
-  Serial.print("rpm:: ");
-  Serial.println(rpm);
-  Serial.print("cnt:: ");
-  Serial.println(cnt);
+  //Serial.print("rpm:: ");
+  //Serial.println(rpm);
+  //Serial.print("cnt:: ");
+  //Serial.println(cnt);
   // Serial.print("photo:: ");
   // Serial.println(digitalRead(sensor_pin));
-  Serial.print("btn1:: ");
-  Serial.println(digitalRead(btn_pin1));
+  //Serial.print("btn1:: ");
+  //Serial.println(digitalRead(btn_pin1));
 #ifdef DEBUG 
   Serial.print("interrupt debugger:: ");
   Serial.println(interrupt_debugger);

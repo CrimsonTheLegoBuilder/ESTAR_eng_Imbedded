@@ -253,7 +253,8 @@ void TaskRotateMachine(void *pvParameters __attribute__((unused))) {
         switch (ButtonEvent) {
           case EVENT_HOMEBUMP_FIRST:
             Serial.println("preparing to spray... EVENT_HOMEBUMP_FIRST");
-            if (digitalRead(motor1_.btn_pin1)) {
+            if (motor1_.interrupt_flag && digitalRead(motor1_.btn_pin1)) {
+              motor1_.interrupt_flag = 0;
               motor1_.direction_changed = false;
               motor1_.set_speed(0);
               delay(2);
@@ -294,7 +295,8 @@ void TaskRotateMachine(void *pvParameters __attribute__((unused))) {
             break;
           case EVENT_HOMEBUMP_SECOND:
             Serial.println("preparing to spray... EVENT_HOMEBUMP_SECOND");
-            if (digitalRead(motor1_.btn_pin1)) {
+            if (motor1_.interrupt_flag && digitalRead(motor1_.btn_pin1)) {
+              motor1_.interrupt_flag = 0;
               motor1_.cnt = 0;
               ButtonEvent = EVENT_HOMEBUMP_FIRST;
               TurntableState = STATE_ROTATE;
@@ -305,7 +307,7 @@ void TaskRotateMachine(void *pvParameters __attribute__((unused))) {
         break;
         //STATE_HOMEBUMP
       case STATE_ROTATE:
-        Serial.println("rotating");
+        //Serial.println("rotating");
 
         /*
         
@@ -339,23 +341,30 @@ void TaskRotateMachine(void *pvParameters __attribute__((unused))) {
         //   break;
         // }
 
-        Serial.print("degree: ");
-        Serial.println(motor1_.degree(), 6);
-        if (digitalRead(motor1_.btn_pin1)) {
+        //Serial.print("rad: ");
+        //Serial.println(motor1_.rad(), 6);
+        if (motor1_.interrupt_flag && digitalRead(motor1_.btn_pin1)) {
+          motor1_.interrupt_flag = 0;
           motor1_.set_speed(0);
           delay(10);
           motor1_.cnt = 0;
+          motor1_.rad_ = 0;
           motor1_.set_direction(CW);
-          motor1_.set_speed(150);
+          motor1_.set_speed(80);
           break;
         }
-        if (motor1_.degree() >= motor1_.target) {
+        else if (motor1_.rad() >= motor1_.target) {
           motor1_.set_speed(0);
           delay(10);
           motor1_.cnt = 0;
+          motor1_.rad_ = 0;
           motor1_.toggle();
-          motor1_.set_speed(150);
+          motor1_.set_speed(80);
+          break;
         }
+        motor1_.set_speed_limit(200, motor1_.rad());
+        //Serial.print("speed: ");
+        //Serial.println(motor1_.spd);
 
         break;
 

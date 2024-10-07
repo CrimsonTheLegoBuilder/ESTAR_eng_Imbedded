@@ -8,10 +8,10 @@ G - 0 ~ 4
 R - 5 ~ 9
 B - 10 ~ 14
 */
-int NUMPIXELS = 0; // number of neopixels in strip
+int NUMPIXELS = 6; // number of neopixels in strip
 int INTERVAL = 10;
 int CNT = 20;
-Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_RGB + NEO_KHZ800);
 Adafruit_NeoPixel rlight = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel llight = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
@@ -20,25 +20,25 @@ void led_setup(int x) {
   pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
   pixels.begin();
 }
-int set_brightness(int j, int x, int b, int interval) {
-  int ipp = (x - 2 + NUMPIXELS * 3) % (NUMPIXELS * 3);
-  int ip = (x - 1 + NUMPIXELS * 3) % (NUMPIXELS * 3);
-  int i0 = x;
-  int in = (x + 1) % (NUMPIXELS * 3);
-  int inn = (x + 2) % (NUMPIXELS * 3);
-  if ((i0 % interval) == (j % interval)) return 255 - (b * 10);
-  if ((ip % interval) == (j % interval)) return 50 + (b * 5);
-  if ((in % interval) == (j % interval)) return 150 - (b * 5);
-  if ((ipp % interval) == (j % interval)) return 10 + (b * 2);
-  if ((inn % interval) == (j % interval)) return 50 - (b * 2);
+uint8_t set_brightness(int j, int x, int b) {
+  int ipp = (j - 2 + NUMPIXELS * 3) % (NUMPIXELS * 3);
+  int ip = (j - 1 + NUMPIXELS * 3) % (NUMPIXELS * 3);
+  int i0 = j;
+  int in = (j + 1) % (NUMPIXELS * 3);
+  int inn = (j + 2) % (NUMPIXELS * 3);
+  if ((i0 % INTERVAL) == x) return 255 - (b * 10);
+  if ((ip % INTERVAL) == x) return 50 + (b * 5);
+  if ((in % INTERVAL) == x) return 150 - (b * 5);
+  if ((ipp % INTERVAL) == x) return 10 + (b * 2);
+  if ((inn % INTERVAL) == x) return 50 - (b * 2);
   else return 0;
 }
 void wavy(int x) {
   for (int j = 0; j < NUMPIXELS; j++) {
-    int g = j * 3 + 0, r = j * 3 + 1, b = j * 3 + 2;
-    int G = set_brightness(g, x, 0);
-    int R = set_brightness(r, x, 0);
-    int B = set_brightness(b, x, 0);
+    int g = j * 3 + 1, r = j * 3 + 0, b = j * 3 + 2;
+    uint8_t G = set_brightness(g, x, 0);
+    uint8_t R = set_brightness(r, x, 0);
+    uint8_t B = set_brightness(b, x, 0);
     Serial.print(G);
     Serial.print(" ");
     Serial.print(R);
@@ -57,23 +57,24 @@ void wavy_analog(int x) {
       int G = set_brightness(g, x, i);
       int R = set_brightness(r, x, i);
       int B = set_brightness(b, x, i);
-      // Serial.print(G);
-      // Serial.print(" ");
-      // Serial.print(R);
-      // Serial.print(" ");
-      // Serial.print(B);
-      // Serial.print(" ");
+      Serial.print(G);
+      Serial.print(" ");
+      Serial.print(R);
+      Serial.print(" ");
+      Serial.print(B);
+      Serial.print(" ");
       pixels.setPixelColor(j, pixels.Color(R, G, B));
     }
-    // Serial.println(" ");
+    Serial.println(" ");
     pixels.show();
   }
 }
 void wavy() {
   static int J_ = 0;
-  // Serial.print(J_);
-  // Serial.print(" ");
-  wavy_analog(J_ + 2);
+  Serial.println(" ");
+  Serial.print(J_);
+  Serial.println(" ");
+  wavy_analog(J_);
   // J_ = (J_ + 1) % (NUMPIXELS * 3);
   J_ = (J_ + 1) % INTERVAL;
 }

@@ -13,6 +13,7 @@ struct Motor {
   int btn_pin2;
   int sensor_pin;
   volatile float rpm;
+  volatile float rad_;
   volatile int spd, dir;
   volatile int teeth;
   volatile int cnt;
@@ -22,7 +23,7 @@ struct Motor {
   float target;
   PID pid;
     
-  volatile bool debounce_flag;
+  volatile bool interrupt_flag;
   volatile unsigned long last_interrupt_time;
   
 #ifdef DEBUG 
@@ -39,6 +40,7 @@ struct Motor {
     sensor_pin = sensorPin;
     if (~sensorPin) pinMode(sensor_pin, INPUT_PULLUP);
     rpm = 0;
+    rad_ = 0;
     spd = 0;
     dir = 0;
     teeth = t;
@@ -49,7 +51,7 @@ struct Motor {
     target = 0;
     pid.init(0, 0, 1e-4, 60, 255);
 
-    debounce_flag = 0;
+    interrupt_flag = 0;
     last_interrupt_time = 0;
 
 #ifdef DEBUG 
@@ -66,6 +68,7 @@ struct Motor {
   void toggle();
   void set_point(float point);
   float cal_speed(float cur);
+  void set_speed_limit(int speed, float the, float ratio = .3);
   float rad();
   float degree();
   void count_();

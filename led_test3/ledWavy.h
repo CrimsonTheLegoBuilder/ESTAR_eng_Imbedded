@@ -10,7 +10,6 @@
   
 void led_setup(int x);
 uint8_t set_brightness(int j, int x, int b);
-void wavy(int x);
 void wavy();
 void wavy_analog(int x);
 void on_();

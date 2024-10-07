@@ -11,6 +11,6 @@ void setup() {
 void loop() {  
   wavy();
   // on_();
-  delay(50);
+  delay(100);
 }  
 
