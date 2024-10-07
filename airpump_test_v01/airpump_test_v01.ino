@@ -8,7 +8,7 @@
 
 bool air, sol1, sol2;
 int high, low;
-bool force_shut;
+static bool force_shut;
 
 void setup() {
   // put your setup code here, to run once:
@@ -30,6 +30,7 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
+  if (digitalRead(WATER_LEVEL)) Serial.println("No Water!!");
   if (Serial.available()) {
     int x = Serial.parseInt();
     switch (x) {
@@ -61,6 +62,17 @@ void loop() {
         sol2 = 1;
         digitalWrite(SOLVALVE1, sol1);
         digitalWrite(SOLVALVE2, sol2);
+        break;
+      case 5:
+        if (force_shut) force_shut = 0;
+        air = 0;
+        digitalWrite(AIRPUMP, air);
+        break;
+      case 6:
+        air = 1;
+        digitalWrite(AIRPUMP, air);
+        break;
+      default:
         break;
     }
   }
