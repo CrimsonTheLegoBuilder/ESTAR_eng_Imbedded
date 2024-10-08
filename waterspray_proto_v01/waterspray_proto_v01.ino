@@ -235,13 +235,16 @@ void TaskRotateMachine(void *pvParameters __attribute__((unused))) {
     switch (TurntableState) {
       case STATE_IDLE:
         Serial.println("preparing to spray...");
-        //준비 동작. 압력 채우기 같은 동작들
-        /*
-        펌프를 동작하는 함수, 분무기 초기화
+        if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
+          //펌프가 채워져있는지 확인하는 변수를 받아와서 확인
+          //준비 동작. 압력 채우기 같은 동작들
+          /*
+          펌프를 동작하는 함수, 분무기 초기화
+        }
         */
         if (1) {
           motor1_.set_speed(0);
-          delay(2);
+          delay(5);
           motor1_.set_direction(CCW);
           motor1_.set_speed(150);
           TurntableState = STATE_HOMEBUMP;
@@ -254,10 +257,10 @@ void TaskRotateMachine(void *pvParameters __attribute__((unused))) {
           case EVENT_HOMEBUMP_FIRST:
             Serial.println("preparing to spray... EVENT_HOMEBUMP_FIRST");
             if (motor1_.interrupt_flag && digitalRead(motor1_.btn_pin1)) {
+              motor1_.set_speed(0);
+              delay(5);
               motor1_.interrupt_flag = 0;
               motor1_.direction_changed = false;
-              motor1_.set_speed(0);
-              delay(2);
               motor1_.set_direction(CW);  // CW로 방향 전환
               timer = timerBegin(1000000);     // 타이머 0, 80분주, true는 카운터 증가
               //timerWrite(timer, 100); // 1000us = 1ms 후 인터럽트 발생
@@ -287,19 +290,22 @@ void TaskRotateMachine(void *pvParameters __attribute__((unused))) {
               timerEnd(timer);
               motor1_.direction_changed = false;
               motor1_.set_speed(0);
-              delay(2);
-              motor1_.set_direction(CCW);  // CW로 방향 전환
-              motor1_.set_speed(100);      // 아주 천천히 CW로 회전
+              delay(5);
               ButtonEvent = EVENT_HOMEBUMP_SECOND;
+              motor1_.set_direction(CCW);  // CCW로 방향 전환
+              motor1_.set_speed(100);      // 아주 천천히 CCW로 회전
             }
             break;
           case EVENT_HOMEBUMP_SECOND:
             Serial.println("preparing to spray... EVENT_HOMEBUMP_SECOND");
             if (motor1_.interrupt_flag && digitalRead(motor1_.btn_pin1)) {
+              motor1_.set_speed(0);
+              delay(5);
               motor1_.interrupt_flag = 0;
               motor1_.cnt = 0;
               ButtonEvent = EVENT_HOMEBUMP_FIRST;
               TurntableState = STATE_ROTATE;
+              motor1_.set_direction(CW); 
               motor1_.set_speed(150);
             }
             break;
@@ -343,7 +349,7 @@ void TaskRotateMachine(void *pvParameters __attribute__((unused))) {
 
         //Serial.print("rad: ");
         //Serial.println(motor1_.rad(), 6);
-        if (motor1_.interrupt_flag && digitalRead(motor1_.btn_pin1)) {
+        if (motor1_.interrupt_flag && digitalRead(motor1_.btn_pin1)) {//버튼이 눌렸다면
           motor1_.interrupt_flag = 0;
           motor1_.set_speed(0);
           delay(10);
@@ -353,7 +359,7 @@ void TaskRotateMachine(void *pvParameters __attribute__((unused))) {
           motor1_.set_speed(80);
           break;
         }
-        else if (motor1_.rad() >= motor1_.target) {
+        else if (motor1_.rad() >= motor1_.target) {//목표 각도에 도달했다면
           motor1_.set_speed(0);
           delay(10);
           motor1_.cnt = 0;
@@ -378,6 +384,41 @@ void TaskRotateMachine(void *pvParameters __attribute__((unused))) {
   }
 }
 
+void TaskSpray(void *pvParameters __attribute__((unused)) ) {
+  // (void) pvParameters;
+  TickType_t xLastWakeTime;
+  const TickType_t xFreq = pdMS_TO_TICKS(2000);
+  xLastWakeTime = xTaskGetTickCount();
+  for (;;) {
+    if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
+      /*
+      웜기어 회전? 하면서 분무하는 동작을 집어넣어야함
+      */
+      xSemaphoreGive(xSemaphore);
+    }
+    Serial.println(t_valid);
+    // Serial.println(memoryPrint());
+    vTaskDelayUntil(&xLastWakeTime, xFreq);
+  }
+}
+
+void TaskSpray(void *pvParameters __attribute__((unused)) ) {
+  // (void) pvParameters;
+  TickType_t xLastWakeTime;
+  const TickType_t xFreq = pdMS_TO_TICKS(2000);
+  xLastWakeTime = xTaskGetTickCount();
+  for (;;) {
+    if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
+      /*
+      웜기어 회전? 하면서 분무하는 동작을 집어넣어야함
+      */
+      xSemaphoreGive(xSemaphore);
+    }
+    Serial.println(t_valid);
+    // Serial.println(memoryPrint());
+    vTaskDelayUntil(&xLastWakeTime, xFreq);
+  }
+}
 
 // void TaskDhtRead(void *pvParameters __attribute__((unused)) ) {
 //   // (void) pvParameters;

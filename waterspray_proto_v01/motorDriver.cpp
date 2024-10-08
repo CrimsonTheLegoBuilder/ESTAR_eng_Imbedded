@@ -100,7 +100,8 @@ void Motor::stop() {
 float Motor::rad() {
   unsigned long current_time = micros();
   unsigned long dt = current_time - last_pulse_time;
-  float alpha = dt / 1000000. * get_speed(spd) / 60.;
+  // float alpha = dt / 1000000. * get_speed(spd) / 60.;
+  float alpha = 0.;
   //if (interrupt_flag) return rad_ = 0;
   return rad_ = norm(2 * PI * ((ld)cnt / teeth + alpha));
 }
