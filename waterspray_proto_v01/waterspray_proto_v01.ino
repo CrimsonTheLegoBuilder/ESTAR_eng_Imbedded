@@ -402,23 +402,6 @@ void TaskSpray(void *pvParameters __attribute__((unused)) ) {
   }
 }
 
-void TaskSpray(void *pvParameters __attribute__((unused)) ) {
-  // (void) pvParameters;
-  TickType_t xLastWakeTime;
-  const TickType_t xFreq = pdMS_TO_TICKS(2000);
-  xLastWakeTime = xTaskGetTickCount();
-  for (;;) {
-    if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
-      /*
-      웜기어 회전? 하면서 분무하는 동작을 집어넣어야함
-      */
-      xSemaphoreGive(xSemaphore);
-    }
-    Serial.println(t_valid);
-    // Serial.println(memoryPrint());
-    vTaskDelayUntil(&xLastWakeTime, xFreq);
-  }
-}
 
 // void TaskDhtRead(void *pvParameters __attribute__((unused)) ) {
 //   // (void) pvParameters;

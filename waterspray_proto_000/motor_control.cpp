@@ -34,13 +34,12 @@ void Motor::begin() {
   if (motor1 == nullptr) {
     motor1 = this;
     attachInterrupt(digitalPinToInterrupt(sensor_pin), photoISR1, RISING);
-    attachInterrupt(digitalPinToInterrupt(btn_pin1), btnISR1, RISING);
-    attachInterrupt(digitalPinToInterrupt(btn_pin2), btnISR1, RISING);
+    // attachInterrupt(digitalPinToInterrupt(btn_pin1), btnISR1, RISING);
+    //attachInterrupt(digitalPinToInterrupt(btn_pin2), btnISR2, RISING);
   }
   else if (motor2 == nullptr) {
     motor2 = this;
-    attachInterrupt(digitalPinToInterrupt(btn_pin1), btnISR2, RISING);
-    attachInterrupt(digitalPinToInterrupt(btn_pin2), btnISR2, RISING);
+    attachInterrupt(digitalPinToInterrupt(btn_pin1), sensorISR2, RISING);
   }
 }
 
@@ -65,6 +64,7 @@ float Motor::cal_speed(float cur) {
   return min(pid.params.low_limit, max(pid.params.high_limit, pid_out));
 }
 
+
 void Motor::set_speed_limit(int speed, float the, float ratio) {
   if (the < target * ratio) {
     int r = the / (target * ratio) * 100;
@@ -83,15 +83,6 @@ void Motor::set_speed_limit(int speed, float the, float ratio) {
   return;
 }
 
-
-void Motor::handle_pulse() {
-  unsigned long current_time = micros();
-  if (current_time - last_pulse_time >= debounce_delay) {
-    pulse_interval = current_time - last_pulse_time;
-    last_pulse_time = current_time;
-    cnt = (cnt + 1) % teeth;
-  }
-}
 
 void Motor::stop() {
   set_speed(0);
@@ -113,77 +104,11 @@ float Motor::degree() {
   return rad_ = norm(2 * PI * ((ld)cnt / teeth + alpha));
 }
 
-void Motor::count_() {
-  // Serial.print("PULSE: ");
-  // Serial.println(pulse_interval);
-  if (pulse_interval > 0) {
-    rpm = (1000000.0 / pulse_interval) * (60.0 / teeth);
-    // Serial.print("RPM: ");
-    // Serial.println(rpm);
-    // Serial.print("pulse_interval: ");
-    // Serial.println(pulse_interval);
-    pulse_interval = 0; // reset pulse interval
-    // Serial.print("cnt++:: ");
-    // Serial.println(cnt);
-  }
-}
-
-void IRAM_ATTR Motor::photoISR1() {//wtf?
-  if (motor1 != nullptr) {
-    motor1->interrupt_flag = 1;
-    motor1->handle_pulse();
-  }
-}
-
-void IRAM_ATTR Motor::btnISR1() {//wtf?
-  if (motor1 != nullptr) {
-    unsigned long current_time = millis();
-    if (current_time - motor1->last_interrupt_time > btn_debounce_delay) {
-      motor1->stop();
-      motor1->direction_changed = true;
-      motor1->last_interrupt_time = current_time;
-#ifdef DEBUG 
-      motor1->interrupt_debugger++;
-#endif
-    }
-  }
-//   if (motor1 != nullptr) {
-//     //portENTER_CRITICAL_ISR();
-//     motor1->stop();
-//     motor1->direction_changed = true;
-// #ifdef DEBUG 
-//     motor1->interrupt_debugger++;
-// #endif
-//     //portEXIT_CRITICAL_ISR();
-//   }
-}
-
-void IRAM_ATTR Motor::btnISR2() {//wtf?
-  if (motor2 != nullptr) {
-    unsigned long current_time = millis();
-    if (current_time - motor1->last_interrupt_time > btn_debounce_delay) {
-      motor2->stop();
-      motor2->direction_changed = true;
-      motor2->last_interrupt_time = current_time;
-#ifdef DEBUG 
-      motor2->interrupt_debugger++;
-#endif
-    }
-}
-
 void Motor::DEBUG_() {
   Serial.print("spd:: ");
   Serial.println(spd);
   Serial.print("dir:: ");
   Serial.println(dir);
-  //Serial.print("rpm:: ");
-  //Serial.println(rpm);
-  //Serial.print("cnt:: ");
-  //Serial.println(cnt);
-  // Serial.print("photo:: ");
-  // Serial.println(digitalRead(sensor_pin));
-  //Serial.print("btn1:: ");
-  //Serial.println(digitalRead(btn_pin1));
 #ifdef DEBUG 
   Serial.print("interrupt debugger:: ");
   Serial.println(interrupt_debugger);
@@ -192,14 +117,3 @@ void Motor::DEBUG_() {
 
 #endif
 
-// void onPulse() {
-//   unsigned long current_pulse_time = micros();
-//   if (current_pulse_time - last_pulse_time >= debounce_delay) {
-//     pulse_interval = (current_pulse_time - last_pulse_time);
-//     last_pulse_time = current_pulse_time;
-//     //if (!dir) return;
-//     if (cnt >= teeth) {
-//       direction_changed = true;
-//     }
-//   }
-// }

@@ -65,6 +65,14 @@ typedef enum {
   EVENT_ROTATE_CCW,
 } ButtonEvent_t;
 
+typedef enum {
+  STATE_IDLE,
+  STATE_INIT,
+  STATE_HOMEBUMP,
+  STATE_ROTATE,
+  STATE_COMPLETE,
+} SprayState_t;
+
 const unsigned long debounce_delay = 200;
 const unsigned long btn_debounce_delay = 1;
 

@@ -21,9 +21,12 @@
 
 #define LEVEL_PIN 33
 #define PRESSURE_PIN 25
+#define PUMP_PIN 21
+#define AIR_PIN 22
+#define WATER_PIN 23
 
-#define RX_PIN 18
-#define TX_PIN 17
+#define RX_PIN 19
+#define TX_PIN 18
 
 //dwin address
 #define WRITE_DATA 0x82
@@ -35,6 +38,8 @@
 
 #define CW 0
 #define CCW 1
+
+#define ANALOG_MAX 4096
 
 typedef long long ll;
 typedef double ld;
@@ -64,6 +69,21 @@ typedef enum {
   EVENT_HOMEBUMP_SECOND,
   EVENT_ROTATE_CCW,
 } ButtonEvent_t;
+
+typedef enum {
+  STATE_IDLE,
+  STATE_INIT,
+  STATE_HOMEBUMP,
+  STATE_ROTATE,
+  STATE_COMPLETE,
+} NozzleState_t;
+
+typedef enum {
+  STATE_IDLE,
+  STATE_INIT,
+  STATE_SPARY,
+  STATE_COMPLETE,
+} SprayState_t;
 
 const unsigned long debounce_delay = 200;
 const unsigned long btn_debounce_delay = 1;

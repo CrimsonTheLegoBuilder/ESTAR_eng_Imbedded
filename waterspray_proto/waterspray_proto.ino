@@ -48,21 +48,35 @@ int memoryPrint() {
 }
 */
 // const EventBits_t xDisturbanceDetected = 0x01;
-// SemaphoreHandle_t xSemaphore = NULL;
+SemaphoreHandle_t xSemaphore = NULL;
 
-// TurntableState_t TurntableState = STATE_IDLE;
-// ButtonEvent_t ButtonEvent = EVENT_HOMEBUMP_FIRST;
-// volatile bool f;
+TurntableState_t TurntableState = STATE_IDLE;
+NozzleState_t NozzleState = STATE_IDLE;
+ButtonEvent_t ButtonEvent = EVENT_HOMEBUMP_FIRST;
+ButtonEvent_t NozzleButtonEvent = EVENT_HOMEBUMP_FIRST;
+volatile bool f;
+volatile bool fnozzle;
 
-// hw_timer_t *timer = NULL;
+hw_timer_t *timer = NULL;
+hw_timer_t *timer2 = NULL;
 // portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
-// void IRAM_ATTR motor1CwTimer() {
-//   portENTER_CRITICAL_ISR(&timerMux);
-//   //motor1_.stop();
-//   f = 1;
-//   //timerEnd(timer);
-//   portEXIT_CRITICAL_ISR(&timerMux);
-// }
+void IRAM_ATTR motor1CwTimer() {
+  portENTER_CRITICAL_ISR(&timerMux);
+  //motor1_.stop();
+  f = 1;
+  //timerEnd(timer);
+  portEXIT_CRITICAL_ISR(&timerMux);
+}
+void IRAM_ATTR motor2CwTimer() {
+  portENTER_CRITICAL_ISR(&timerMux);
+  //motor2_.stop();
+  fnozzle = 1;
+  //timerEnd(timer2);
+  portEXIT_CRITICAL_ISR(&timerMux);
+}
+
+TimerHandle_t directionChangeTimer;
+volatile bool changeDirectionFlag = false;  // 방향 변경 플래그
 
 void setup() {
   Serial.begin(9600);
@@ -73,11 +87,12 @@ void setup() {
   // temper_pid.init(.2, .1, .0005, 1e-4, .0);
 
   motor1_.begin();
-  // motor2_.begin();
+  motor2_.begin();
 
   motor1_.set_direction(CCW);
-  motor1_.set_speed(200);
-  // motor1_.target = PI * 0.666666;
+  // motor1_.set_speed(200);
+  motor1_.target = PI * 0.666666;
+  motor2_.target = 10;
 
   // if ( xSemaphore == NULL ) { // Check to confirm that the Serial Semaphore has not already been created.
   //   xSemaphore = xSemaphoreCreateMutex();  // Create a mutex semaphore we will use to manage the Serial Port
@@ -104,14 +119,36 @@ void setup() {
   //   NULL
   // ));
 
-  // Serial.println(xTaskCreate(
-  //   TaskRotateMachine,
-  //   "RotateMachine",
-  //   4096,
-  //   NULL,
-  //   2,
-  //   NULL
-  // ));
+  Serial.println(xTaskCreate(
+    TaskRotateMachine,
+    "RotateMachine",
+    4096,
+    NULL,
+    2,
+    NULL
+  ));
+
+  Serial.println(xTaskCreate(
+    TaskNozzle,
+    "Nozzle",
+    4096,
+    NULL,
+    2,
+    NULL
+  ));
+
+    // directionChangeTimer = xTimerCreate(
+    //   "DirectionChangeTimer",             // 타이머 이름
+    //   pdMS_TO_TICKS(5000),                // 주기 (5초)
+    //   pdTRUE,                             // 반복 실행 (pdTRUE)
+    //   (void*)0,                           // 타이머 ID (사용하지 않음)
+    //   directionChangeCallback             // 콜백 함수
+    // );
+
+    // // 타이머 시작
+    // if (directionChangeTimer != NULL) {
+    //     xTimerStart(directionChangeTimer, 0);
+    // }
 
   // Serial.println(xTaskCreate(
   //   TaskDhtRead,
@@ -167,7 +204,6 @@ void setup() {
   //   NULL
   // ));
 
-  pinMode(BTN1_PIN, INPUT_PULLUP);
   Serial.println("end");
 
   // Serial.println(memoryPrint());
@@ -177,11 +213,16 @@ void setup() {
 }
 
 void loop() {
-  if (digitalRead(BTN1_PIN)) {
-    Serial.println("Fuck!!");
-    motor1_.toggle();
-  }
-  delay(100);
+  // if (digitalRead(BTN1_PIN)) {
+  //   Serial.println("Fuck!!");
+  //   motor1_.toggle();
+  // }
+  // delay(100);
+}
+
+void directionChangeCallback(TimerHandle_t xTimer) {
+    // 방향 변경 플래그 설정
+    changeDirectionFlag = true;
 }
 
 // void vDisturbanceDetectionTask(void *pvParameters) {
@@ -233,158 +274,252 @@ void loop() {
 //   }
 // }
 
-// void TaskRotateMachine(void *pvParameters __attribute__((unused))) {
+// void TaskSpray(void *pvParameters __attribute__((unused)) ) {
+//   // (void) pvParameters;
 //   TickType_t xLastWakeTime;
-//   const TickType_t xFreq = pdMS_TO_TICKS(100); // 100ms 주기
+//   const TickType_t xFreq = pdMS_TO_TICKS(500);
 //   xLastWakeTime = xTaskGetTickCount();
-
 //   for (;;) {
-//     switch (TurntableState) {
-//       case STATE_IDLE:
-//         Serial.println("preparing to spray...");
-//         //준비 동작. 압력 채우기 같은 동작들
-//         /*
-//         펌프를 동작하는 함수, 분무기 초기화
-//         */
-//         if (1) {
-//           motor1_.set_speed(0);
-//           delay(2);
-//           motor1_.set_direction(CCW);
-//           motor1_.set_speed(150);
-//           TurntableState = STATE_HOMEBUMP;
-//         }
-//         break;
+//     if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
 
-//       case STATE_HOMEBUMP:
-//         Serial.println("spray position init...");
-//         switch (ButtonEvent) {
-//           case EVENT_HOMEBUMP_FIRST:
-//             Serial.println("preparing to spray... EVENT_HOMEBUMP_FIRST");
-//             if (motor1_.interrupt_flag && digitalRead(motor1_.btn_pin1)) {
-//               motor1_.interrupt_flag = 0;
-//               motor1_.direction_changed = false;
-//               motor1_.set_speed(0);
-//               delay(2);
-//               motor1_.set_direction(CW);  // CW로 방향 전환
-//               timer = timerBegin(1000000);     // 타이머 0, 80분주, true는 카운터 증가
-//               //timerWrite(timer, 100); // 1000us = 1ms 후 인터럽트 발생
-//               timerAttachInterrupt(timer, &motor1CwTimer); // 타이머 인터럽트 핸들러 설정
-//               //timerAlarm(timer, 0, 0, 0);             // 타이머 알람 활성화
-//               f = 0;
-//               ButtonEvent = EVENT_ROTATE_CW;
-//               motor1_.set_speed(100);      // 아주 천천히 CW로 회전
-//               // timerStart(timer);
-//               timerAlarm(timer, 2000000, false, 0);
-//               //timerAlarmEnable(timer);
-//             }
-//             break;
-//           case EVENT_ROTATE_CW:
-//             Serial.println("preparing to spray... EVENT_ROTATE_CW");
-//             Serial.print("motor1_.direction_changed: ");
-//             Serial.println(motor1_.direction_changed);
-//             Serial.print("f: ");
-//             Serial.println(f);
+      
 
-//             if (motor1_.spd < 10) {
-//               motor1_.set_direction(CW);  // CW로 방향 전환
-//               motor1_.set_speed(100);
-//               break;
-//             }
-//             if (f) {
-//               timerEnd(timer);
-//               motor1_.direction_changed = false;
-//               motor1_.set_speed(0);
-//               delay(2);
-//               motor1_.set_direction(CCW);  // CW로 방향 전환
-//               motor1_.set_speed(100);      // 아주 천천히 CW로 회전
-//               ButtonEvent = EVENT_HOMEBUMP_SECOND;
-//             }
-//             break;
-//           case EVENT_HOMEBUMP_SECOND:
-//             Serial.println("preparing to spray... EVENT_HOMEBUMP_SECOND");
-//             if (motor1_.interrupt_flag && digitalRead(motor1_.btn_pin1)) {
-//               motor1_.interrupt_flag = 0;
-//               motor1_.cnt = 0;
-//               ButtonEvent = EVENT_HOMEBUMP_FIRST;
-//               TurntableState = STATE_ROTATE;
-//               motor1_.set_speed(150);
-//             }
-//             break;
-//         }
-//         break;
-//         //STATE_HOMEBUMP
-//       case STATE_ROTATE:
-//         //Serial.println("rotating");
-
-//         /*
-        
-//         PID 구현은 일단 다음으로 미루고 생각해보기. 보정까지 고려하면 꽤 오래 걸림. 이 수를 세므로 멈춰야하는 시점까지 얼마나 남았나를 계산 가능함.
-
-//         각도 환산 함수가 필요함. cnt를 센 건 그 자체로 각도로 바꿀 수 있고, 마지막으로 출력한 속도 값과 인터럽트로부터 흐른 시간을 토대로 추가로 지나온 각도를 알 수 있음.
-//         남은 각도로 출력을 어느 정도로 줄이면서 돌려야하는지를 계산.
-
-//         */
-
-//         /*
-//         회전 동작 초기:
-//         PID 계산을 돌린 후 : motor.cal_speed(speed);
-//         안정적으로 동작하는 속도로 환산한다. -> 일단 출력값을 그대로 각도 변환 명령으로 사용
-//         방향을 판단한다.
-//         */
-
-//         // switch (ButtonEvent) {
-//         //   case EVENT_ROTATE_CW:
-//         //   /*
-//         //   방향을 판단한 이후의 과정:
-//         //   방향을 지정한다.
-//         //   움직이는 함수를 동작한다.
-//         //   인터럽트가 일어났거나 목표 각도에 동작한 경우? -> 방향을 전환 후 cnt 초기화
-
-//         //   필요한 과정: 속도 환산, PID 제어기 출력값 가공.
-//         //   */
-//         //   break;
-
-//         //   case EVENT_ROTATE_CCW:
-//         //   break;
-//         // }
-
-//         //Serial.print("rad: ");
-//         //Serial.println(motor1_.rad(), 6);
-//         if (motor1_.interrupt_flag && digitalRead(motor1_.btn_pin1)) {
-//           motor1_.interrupt_flag = 0;
-//           motor1_.set_speed(0);
-//           delay(10);
-//           motor1_.cnt = 0;
-//           motor1_.rad_ = 0;
-//           motor1_.set_direction(CW);
-//           motor1_.set_speed(80);
-//           break;
-//         }
-//         else if (motor1_.rad() >= motor1_.target) {
-//           motor1_.set_speed(0);
-//           delay(10);
-//           motor1_.cnt = 0;
-//           motor1_.rad_ = 0;
-//           motor1_.toggle();
-//           motor1_.set_speed(80);
-//           break;
-//         }
-//         motor1_.set_speed_limit(200, motor1_.rad());
-//         //Serial.print("speed: ");
-//         //Serial.println(motor1_.spd);
-
-//         break;
-
-//       case STATE_COMPLETE:
-//         Serial.println("Mission Complete.");
-//         TurntableState = STATE_IDLE; // 다시 대기 상태로
-//         break;
+//       xSemaphoreGive(xSemaphore);
 //     }
-//     // 주기적으로 상태를 체크하며 업데이트
+//     // Serial.println(memoryPrint());
 //     vTaskDelayUntil(&xLastWakeTime, xFreq);
 //   }
 // }
 
+void TaskRotateMachine(void *pvParameters __attribute__((unused))) {
+  TickType_t xLastWakeTime;
+  const TickType_t xFreq = pdMS_TO_TICKS(100); // 100ms 주기
+  xLastWakeTime = xTaskGetTickCount();
+  for (;;) {
+    switch (TurntableState) {
+      case STATE_IDLE:
+        Serial.println("preparing to spray...");
+        //준비 동작. 압력 채우기 같은 동작들
+        /*
+        펌프를 동작하는 함수, 분무기 초기화
+        */
+        if (1) {
+          motor1_.set_speed(0);
+          delay(2);
+          motor1_.set_direction(CCW);
+          motor1_.set_speed(150);
+          TurntableState = STATE_HOMEBUMP;
+        }
+        break;
+
+      case STATE_HOMEBUMP:
+        Serial.println("spray position init...");
+        switch (ButtonEvent) {
+          case EVENT_HOMEBUMP_FIRST:
+            Serial.println("preparing to spray... EVENT_HOMEBUMP_FIRST");
+            if (motor1_.interrupt_flag && digitalRead(motor1_.btn_pin1)) {
+              motor1_.interrupt_flag = 0;
+              motor1_.direction_changed = false;
+              motor1_.set_speed(0);
+              delay(2);
+              motor1_.set_direction(CW);  // CW로 방향 전환
+              timer = timerBegin(1000000);     // 타이머 0, 80분주, true는 카운터 증가
+              //timerWrite(timer, 100); // 1000us = 1ms 후 인터럽트 발생
+              timerAttachInterrupt(timer, &motor1CwTimer); // 타이머 인터럽트 핸들러 설정
+              //timerAlarm(timer, 0, 0, 0);             // 타이머 알람 활성화
+              f = 0;
+              ButtonEvent = EVENT_ROTATE_CW;
+              motor1_.set_speed(100);      // 아주 천천히 CW로 회전
+              // timerStart(timer);
+              timerAlarm(timer, 2000000, false, 0);
+              //timerAlarmEnable(timer);
+            }
+            break;
+          case EVENT_ROTATE_CW:
+            Serial.println("preparing to spray... EVENT_ROTATE_CW");
+            Serial.print("motor1_.direction_changed: ");
+            Serial.println(motor1_.direction_changed);
+            Serial.print("f: ");
+            Serial.println(f);
+
+            if (motor1_.spd < 10) {
+              motor1_.set_direction(CW);  // CW로 방향 전환
+              motor1_.set_speed(100);
+              break;
+            }
+            if (f) {
+              timerEnd(timer);
+              motor1_.direction_changed = false;
+              motor1_.set_speed(0);
+              delay(2);
+              motor1_.set_direction(CCW);  // CW로 방향 전환
+              motor1_.set_speed(100);      // 아주 천천히 CW로 회전
+              ButtonEvent = EVENT_HOMEBUMP_SECOND;
+            }
+            break;
+          case EVENT_HOMEBUMP_SECOND:
+            Serial.println("preparing to spray... EVENT_HOMEBUMP_SECOND");
+            if (motor1_.interrupt_flag && digitalRead(motor1_.btn_pin1)) {
+              motor1_.interrupt_flag = 0;
+              motor1_.cnt = 0;
+              ButtonEvent = EVENT_HOMEBUMP_FIRST;
+              TurntableState = STATE_ROTATE;
+              motor1_.set_speed(150);
+            }
+            break;
+        }
+        break;
+        //STATE_HOMEBUMP
+      case STATE_ROTATE:
+        if (motor1_.interrupt_flag && digitalRead(motor1_.btn_pin1)) {
+          motor1_.interrupt_flag = 0;
+          motor1_.set_speed(0);
+          delay(10);
+          motor1_.cnt = 0;
+          motor1_.rad_ = 0;
+          motor1_.set_direction(CW);
+          motor1_.set_speed(80);
+          break;
+        }
+        else if (motor1_.rad() >= motor1_.target) {
+          motor1_.set_speed(0);
+          delay(10);
+          motor1_.cnt = 0;
+          motor1_.rad_ = 0;
+          motor1_.toggle();
+          motor1_.set_speed(80);
+          break;
+        }
+        motor1_.set_speed_limit(200, motor1_.rad());
+        //Serial.print("speed: ");
+        //Serial.println(motor1_.spd);
+
+        break;
+
+      case STATE_COMPLETE:
+        Serial.println("Mission Complete.");
+        TurntableState = STATE_IDLE; // 다시 대기 상태로
+        break;
+    }
+    // 주기적으로 상태를 체크하며 업데이트
+    vTaskDelayUntil(&xLastWakeTime, xFreq);
+  }
+}
+
+void TaskNozzle(void *pvParameters __attribute__((unused))) {
+  TickType_t xLastWakeTime;
+  const TickType_t xFreq = pdMS_TO_TICKS(100); // 100ms 주기
+  xLastWakeTime = xTaskGetTickCount();
+  for (;;) {
+    switch (NozzleState) {
+      case STATE_IDLE:
+        Serial.println("preparing to spray...");
+        //준비 동작. 압력 채우기 같은 동작들
+        /*
+        펌프를 동작하는 함수, 분무기 초기화
+        */
+        if (1) {
+          motor2_.set_speed(0);
+          delay(2);
+          motor2_.set_direction(CCW);
+          motor2_.set_speed(150);
+          NozzleState = STATE_HOMEBUMP;
+        }
+        break;
+
+      case STATE_HOMEBUMP:
+        Serial.println("spray position init...");
+        switch (NozzleButtonEvent) {
+          case EVENT_HOMEBUMP_FIRST:
+            Serial.println("preparing to spray... EVENT_HOMEBUMP_FIRST");
+            if (motor2_.interrupt_flag && digitalRead(motor2_.btn_pin1)) {
+              motor2_.interrupt_flag = 0;
+              motor2_.direction_changed = false;
+              motor2_.set_speed(0);
+              delay(2);
+              motor2_.set_direction(CW);  // CW로 방향 전환
+              timer2 = timerBegin(1000000);     // 타이머 0, 80분주, true는 카운터 증가
+              //timerWrite(timer, 100); // 1000us = 1ms 후 인터럽트 발생
+              timerAttachInterrupt(timer2, &motor2CwTimer); // 타이머 인터럽트 핸들러 설정
+              //timerAlarm(timer, 0, 0, 0);             // 타이머 알람 활성화
+              fnozzle = 0;
+              NozzleButtonEvent = EVENT_ROTATE_CW;
+              motor2_.set_speed(100);      // 아주 천천히 CW로 회전
+              // timerStart(timer);
+              timerAlarm(timer2, 2000000, false, 0);
+              //timerAlarmEnable(timer);
+            }
+            break;
+          case EVENT_ROTATE_CW:
+            Serial.println("preparing to spray... EVENT_ROTATE_CW");
+            Serial.print("motor2_.direction_changed: ");
+            Serial.println(motor2_.direction_changed);
+            Serial.print("fnozzle: ");
+            Serial.println(fnozzle);
+
+            if (motor2_.spd < 10) {
+              motor2_.set_direction(CW);  // CW로 방향 전환
+              motor2_.set_speed(100);
+              break;
+            }
+            if (f) {
+              timerEnd(timer);
+              motor2_.direction_changed = false;
+              motor2_.set_speed(0);
+              delay(2);
+              motor2_.set_direction(CCW);  // CW로 방향 전환
+              motor2_.set_speed(100);      // 아주 천천히 CW로 회전
+              NozzleButtonEvent = EVENT_HOMEBUMP_SECOND;
+            }
+            break;
+          case EVENT_HOMEBUMP_SECOND:
+            Serial.println("preparing to spray... EVENT_HOMEBUMP_SECOND");
+            if (motor2_.interrupt_flag && digitalRead(motor2_.btn_pin1)) {
+              motor2_.interrupt_flag = 0;
+              motor2_.cnt = 0;
+              NozzleButtonEvent = EVENT_HOMEBUMP_FIRST;
+              NozzleState = STATE_ROTATE;
+              motor2_.set_speed(150);
+            }
+            break;
+        }
+        break;
+        //STATE_HOMEBUMP
+      case STATE_ROTATE:
+        if (motor2_.interrupt_flag && digitalRead(motor2_.btn_pin1)) {
+          motor2_.interrupt_flag = 0;
+          motor2_.set_speed(0);
+          delay(10);
+          motor2_.cnt = 0;
+          motor2_.rad_ = 0;
+          motor2_.set_direction(CW);
+          motor2_.set_speed(80);
+          break;
+        }
+        else if (motor2_.rad() >= motor2_.target) {
+          motor2_.set_speed(0);
+          delay(10);
+          motor2_.cnt = 0;
+          motor2_.rad_ = 0;
+          motor2_.toggle();
+          motor2_.set_speed(80);
+          break;
+        }
+        motor2_.set_speed_limit(200, motor2_.rad());
+        //Serial.print("speed: ");
+        //Serial.println(motor2_.spd);
+
+        break;
+
+      case STATE_COMPLETE:
+        Serial.println("Mission Complete.");
+        NozzleState = STATE_IDLE; // 다시 대기 상태로
+        break;
+    }
+    // 주기적으로 상태를 체크하며 업데이트
+    vTaskDelayUntil(&xLastWakeTime, xFreq);
+  }
+}
 
 // void TaskDhtRead(void *pvParameters __attribute__((unused)) ) {
 //   // (void) pvParameters;
