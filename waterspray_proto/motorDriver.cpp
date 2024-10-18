@@ -172,6 +172,23 @@ void IRAM_ATTR Motor::btnISR2() {//wtf?
   }
 }
 
+float cal_revolve() {
+  unsigned long current_time = millis();
+  unsigned long dt = current_time - last_revolve_time;
+  float rev;
+  /*
+  모터의 속도 출력으로부터 rps를 추론하는 과정
+  ->
+  rps과 시간차를 사용해 회전수를 구함.
+  작은 모터의 회전 속도는 아직 구하지 않았음.
+  0에 속도를 대체해야함.
+  */
+  float rps = 0 * spd;
+  rev = rps * dt;
+  return rev; 
+
+}
+
 void Motor::DEBUG_() {
   Serial.print("spd:: ");
   Serial.println(spd);

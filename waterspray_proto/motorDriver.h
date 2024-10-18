@@ -18,6 +18,7 @@ struct Motor {
   volatile int teeth;
   volatile int cnt;
   volatile unsigned long last_pulse_time;
+  volatile unsigned long last_revolve_time;
   volatile unsigned long pulse_interval;
   volatile bool direction_changed;
   float target;
@@ -46,6 +47,7 @@ struct Motor {
     teeth = t;
     cnt = 0;
     last_pulse_time = 0;
+    last_revolve_time = 0;
     pulse_interval = 0;
     direction_changed = 0;
     target = 0;
