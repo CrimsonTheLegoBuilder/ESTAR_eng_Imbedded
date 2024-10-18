@@ -51,7 +51,7 @@ int memoryPrint() {
 SemaphoreHandle_t xSemaphore = NULL;
 
 TurntableState_t TurntableState = STATE_IDLE;
-NozzleState_t NozzleState = STATE_IDLE;
+NozzleState_t NozzleState = NOZZLE_IDLE;
 ButtonEvent_t ButtonEvent = EVENT_HOMEBUMP_FIRST;
 ButtonEvent_t NozzleButtonEvent = EVENT_HOMEBUMP_FIRST;
 volatile bool f;
@@ -59,7 +59,7 @@ volatile bool fnozzle;
 
 hw_timer_t *timer = NULL;
 hw_timer_t *timer2 = NULL;
-// portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
+portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
 void IRAM_ATTR motor1CwTimer() {
   portENTER_CRITICAL_ISR(&timerMux);
   //motor1_.stop();
@@ -423,7 +423,7 @@ void TaskNozzle(void *pvParameters __attribute__((unused))) {
           delay(2);
           motor2_.set_direction(CCW);
           motor2_.set_speed(150);
-          NozzleState = STATE_HOMEBUMP;
+          NozzleState = NOZZLE_HOMEBUMP;
         }
         break;
 
@@ -478,7 +478,7 @@ void TaskNozzle(void *pvParameters __attribute__((unused))) {
               motor2_.interrupt_flag = 0;
               motor2_.cnt = 0;
               NozzleButtonEvent = EVENT_HOMEBUMP_FIRST;
-              NozzleState = STATE_ROTATE;
+              NozzleState = NOZZLE_ROTATE;
               motor2_.set_speed(150);
             }
             break;
@@ -513,7 +513,7 @@ void TaskNozzle(void *pvParameters __attribute__((unused))) {
 
       case STATE_COMPLETE:
         Serial.println("Mission Complete.");
-        NozzleState = STATE_IDLE; // 다시 대기 상태로
+        NozzleState = NOZZLE_IDLE; // 다시 대기 상태로
         break;
     }
     // 주기적으로 상태를 체크하며 업데이트

@@ -7,8 +7,8 @@
 
 struct Spray {
   int pump_pin;
-  int air_sol_pin;
-  int water_sol_pin;
+  int air_pin;
+  int water_pin;
   int pressure_pin1;
   // int pressure_pin2;
   int pump_state;
@@ -31,6 +31,6 @@ struct Spray {
   void water_on();
   void water_off();
   int pressure_read();
-}
+};
 
 #endif

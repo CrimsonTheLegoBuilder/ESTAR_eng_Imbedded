@@ -169,6 +169,7 @@ void IRAM_ATTR Motor::btnISR2() {//wtf?
       motor2->interrupt_debugger++;
 #endif
     }
+  }
 }
 
 void Motor::DEBUG_() {

@@ -1,10 +1,12 @@
 #ifndef _SPRAY_SOURCE_
 #define _SPRAY_SOURCE_
 
+#include "sprayControl.h"
+
 void Spray::init() {
   pinMode(pump_pin, OUTPUT);
-  pinMode(air_sol_pin, OUTPUT);
-  pinMode(water_sol_pin, OUTPUT);
+  pinMode(air_pin, OUTPUT);
+  pinMode(water_pin, OUTPUT);
   pinMode(pressure_pin1, INPUT);
 }
 void Spray::change_pressure_limit(int hi, int lo) {
@@ -15,9 +17,9 @@ void Spray::shut_off() {
   pump_state = LOW;
   digitalWrite(pump_pin, LOW);
   air_state = LOW;
-  digitalWrite(air_sol_pin, LOW);
+  digitalWrite(air_pin, LOW);
   water_state = LOW;
-  digitalWrite(water_state, LOW);
+  digitalWrite(water_pin, LOW);
 }
 void Spray::pump_on() {
   pump_state = HIGH;
@@ -29,19 +31,19 @@ void Spray::pump_off() {
 }
 void Spray::air_on() {
   air_state = HIGH;
-  digitalWrite(air_sol_pin, HIGH);
+  digitalWrite(air_pin, HIGH);
 }
 void Spray::air_off() {
   air_state = LOW;
-  digitalWrite(air_sol_pin, LOW);
+  digitalWrite(air_pin, LOW);
 }
 void Spray::water_on() {
   water_state = HIGH;
-  digitalWrite(water_state, HIGH);
+  digitalWrite(water_pin, HIGH);
 }
 void Spray::water_off() {
   water_state = LOW;
-  digitalWrite(water_state, LOW);
+  digitalWrite(water_pin, LOW);
 }
 int Spray::pressure_read() {
   int v = analogRead(pressure_pin1);

@@ -71,18 +71,18 @@ typedef enum {
 } ButtonEvent_t;
 
 typedef enum {
-  STATE_IDLE,
-  STATE_INIT,
-  STATE_HOMEBUMP,
-  STATE_ROTATE,
-  STATE_COMPLETE,
+  NOZZLE_IDLE,
+  NOZZLE_INIT,
+  NOZZLE_HOMEBUMP,
+  NOZZLE_ROTATE,
+  NOZZLE_COMPLETE,
 } NozzleState_t;
 
 typedef enum {
-  STATE_IDLE,
-  STATE_INIT,
-  STATE_SPARY,
-  STATE_COMPLETE,
+  SPRAY_IDLE,
+  SPRAY_INIT,
+  SPRAY_RUNNING,
+  SPRAY_COMPLETE,
 } SprayState_t;
 
 const unsigned long debounce_delay = 200;
