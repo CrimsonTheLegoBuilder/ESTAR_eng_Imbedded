@@ -533,19 +533,7 @@ void TaskSpray(void *pvParameters __attribute__((unused))) {
         break;
 
       case SPRAY_INIT:
-        switch (NozzleButtonEvent) {
-        Serial.println("spray pressure charging...");
-          case EVENT_HOMEBUMP_FIRST:
-            Serial.println("preparing to spray... EVENT_HOMEBUMP_FIRST");
 
-            break;
-          case EVENT_ROTATE_CW:
-
-            break;
-          case EVENT_HOMEBUMP_SECOND:
-
-            break;
-        }
         break;
         //STATE_HOMEBUMP
       case SPRAY_RUNNING:
