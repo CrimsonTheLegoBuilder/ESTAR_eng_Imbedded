@@ -92,7 +92,7 @@ void setup() {
   motor1_.set_direction(CCW);
   // motor1_.set_speed(200);
   motor1_.target = PI * 0.666666;
-  motor2_.target = 10;
+  motor2_.target = 10;//아직 관계식이 없는 상태. 입의 값을 적어둠.
 
   // if ( xSemaphore == NULL ) { // Check to confirm that the Serial Semaphore has not already been created.
   //   xSemaphore = xSemaphoreCreateMutex();  // Create a mutex semaphore we will use to manage the Serial Port
@@ -514,6 +514,46 @@ void TaskNozzle(void *pvParameters __attribute__((unused))) {
       case STATE_COMPLETE:
         Serial.println("Mission Complete.");
         NozzleState = NOZZLE_IDLE; // 다시 대기 상태로
+        break;
+    }
+    // 주기적으로 상태를 체크하며 업데이트
+    vTaskDelayUntil(&xLastWakeTime, xFreq);
+  }
+}
+
+void TaskSpray(void *pvParameters __attribute__((unused))) {
+  TickType_t xLastWakeTime;
+  const TickType_t xFreq = pdMS_TO_TICKS(100); // 100ms 주기
+  xLastWakeTime = xTaskGetTickCount();
+  for (;;) {
+    switch (NozzleState) {
+      case SPRAY_IDLE:
+        Serial.println("spray pressure charging...");
+
+        break;
+
+      case SPRAY_INIT:
+        switch (NozzleButtonEvent) {
+        Serial.println("spray pressure charging...");
+          case EVENT_HOMEBUMP_FIRST:
+            Serial.println("preparing to spray... EVENT_HOMEBUMP_FIRST");
+
+            break;
+          case EVENT_ROTATE_CW:
+
+            break;
+          case EVENT_HOMEBUMP_SECOND:
+
+            break;
+        }
+        break;
+        //STATE_HOMEBUMP
+      case SPRAY_RUNNING:
+
+        break;
+
+      case SPRAY_COMPLETE:
+
         break;
     }
     // 주기적으로 상태를 체크하며 업데이트
