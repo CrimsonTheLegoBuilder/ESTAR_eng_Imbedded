@@ -518,15 +518,17 @@ void TaskSpray(void *pvParameters __attribute__((unused))) {
         break;
 
       case SPRAY_INIT:
-
+        //압력 충전이 끝날 때까지 압력을 채운 후, 다음 과정으로 넘김.
+        //작동이 불안정해 아직 제대로 된 로직을 작성할 수 없음.
         break;
 
       case SPRAY_RUNNING:
-        
+        //임무가 끝날 때까지 분무를 반복함. 시간이 완전히 지나고 나면 상태 변수를 변경.
         break;
 
       case SPRAY_COMPLETE:
-
+        //액체부터 분사를 멈추고 시간 간격을 띄워서 공기의 분사까지 끝냄. 
+        //혹시라도 통제의 범위를 벗어날 경우를 대비해 압력을 완전히 빼내는 것을 고려.
         break;
     }
     // 주기적으로 상태를 체크하며 업데이트
@@ -538,6 +540,11 @@ void TaskMission(void *pvParameters __attribute__((unused))) {
   TickType_t xLastWakeTime;
   const TickType_t xFreq = pdMS_TO_TICKS(50); // 100ms 주기
   xLastWakeTime = xTaskGetTickCount();
+  /*
+
+  각각의 하위 태스크들이 플래그를 변경할 때마다 다음 페이즈로 넘어가도록 디자인을 해야함.
+  
+  */
   for (;;) {
     switch (MissionState) {
       case MISSION_IDLE:
