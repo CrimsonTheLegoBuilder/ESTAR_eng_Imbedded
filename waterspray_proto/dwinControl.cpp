@@ -40,7 +40,7 @@ LCD로부터 읽어들인 데이터의 목표와 내용만 간단하게 실어�
 
 void dwin::setup() {
   // uart.begin(38400);
-  uart.begin(38400, SERIAL_8N1, 19, 18);
+  uart.begin(38400, SERIAL_8N1, 19, 18);//UART용 핀 번호 재설정
 }
 
 // bool dwin::read(Event& info) {
@@ -52,7 +52,6 @@ void dwin::setup() {
 //     Serial.print("i:: ");
 //     Serial.println(Buffer[4]);
 //     Serial.println(Buffer[8]);
-    
 //     if (Buffer[0] == 0X5A) {//valid check
 //       //valid check process
 //       unsigned char addr = Buffer[4];

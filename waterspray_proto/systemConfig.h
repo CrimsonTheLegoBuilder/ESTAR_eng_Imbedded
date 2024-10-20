@@ -44,6 +44,11 @@
 typedef long long ll;
 typedef double ld;
 
+struct Info {
+  unsigned char vp_address;
+  int flag;
+};
+
 enum EventType {
   RUN_DRYER=0X3A,
   STOP_DRYER,
@@ -84,6 +89,14 @@ typedef enum {
   SPRAY_RUNNING,
   SPRAY_COMPLETE,
 } SprayState_t;
+
+typedef enum {
+  MISSION_IDLE,
+  MISSION_START,
+  MISSION_PROC,
+  MISSION_END,
+} MissionState_t;
+
 
 const unsigned long debounce_delay = 200;
 const unsigned long btn_debounce_delay = 1;

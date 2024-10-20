@@ -52,6 +52,8 @@ SemaphoreHandle_t xSemaphore = NULL;
 
 TurntableState_t TurntableState = STATE_IDLE;
 NozzleState_t NozzleState = NOZZLE_IDLE;
+SprayState_t SprayState = SPRAY_IDLE;
+MissionState_t MissionState = MISSION_IDLE;
 ButtonEvent_t ButtonEvent = EVENT_HOMEBUMP_FIRST;
 ButtonEvent_t NozzleButtonEvent = EVENT_HOMEBUMP_FIRST;
 volatile bool f;
@@ -267,23 +269,6 @@ void directionChangeCallback(TimerHandle_t xTimer) {
 //     if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
 //       // motor1_.count_();
 //       motor1_.DEBUG_();
-//       xSemaphoreGive(xSemaphore);
-//     }
-//     // Serial.println(memoryPrint());
-//     vTaskDelayUntil(&xLastWakeTime, xFreq);
-//   }
-// }
-
-// void TaskSpray(void *pvParameters __attribute__((unused)) ) {
-//   // (void) pvParameters;
-//   TickType_t xLastWakeTime;
-//   const TickType_t xFreq = pdMS_TO_TICKS(500);
-//   xLastWakeTime = xTaskGetTickCount();
-//   for (;;) {
-//     if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
-
-      
-
 //       xSemaphoreGive(xSemaphore);
 //     }
 //     // Serial.println(memoryPrint());
@@ -535,9 +520,9 @@ void TaskSpray(void *pvParameters __attribute__((unused))) {
       case SPRAY_INIT:
 
         break;
-        //STATE_HOMEBUMP
-      case SPRAY_RUNNING:
 
+      case SPRAY_RUNNING:
+        
         break;
 
       case SPRAY_COMPLETE:
@@ -549,26 +534,71 @@ void TaskSpray(void *pvParameters __attribute__((unused))) {
   }
 }
 
-// void TaskDhtRead(void *pvParameters __attribute__((unused)) ) {
-//   // (void) pvParameters;
-//   TickType_t xLastWakeTime;
-//   const TickType_t xFreq = pdMS_TO_TICKS(2000);
-//   xLastWakeTime = xTaskGetTickCount();
-//   for (;;) {
-//     if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
-//       if (t_valid = dht::check(tempValue, humiValue)) {
-//         Serial.print("tempValue : ");
-//         Serial.println(tempValue);
-//         Serial.print("humiValue : ");
-//         Serial.println(humiValue);
-//       }
-//       xSemaphoreGive(xSemaphore);
-//     }
-//     Serial.println(t_valid);
-//     // Serial.println(memoryPrint());
-//     vTaskDelayUntil(&xLastWakeTime, xFreq);
-//   }
-// }
+void TaskMission(void *pvParameters __attribute__((unused))) {
+  TickType_t xLastWakeTime;
+  const TickType_t xFreq = pdMS_TO_TICKS(50); // 100ms 주기
+  xLastWakeTime = xTaskGetTickCount();
+  for (;;) {
+    switch (MissionState) {
+      case MISSION_IDLE:
+        Serial.println("mission prepare...");
+
+        if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
+          /*
+          3개의 과정에서 모두 준비가 완료되었음을 확인 시 다음 과정을 넘어감
+          */
+        }
+        break;
+
+      case MISSION_START:
+        if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
+          /*
+          3개의 과정에서 시작 과정이 끝나면 진행 중으로 넘어감 
+          */
+        }
+        break;
+
+      case MISSION_PROC:
+        if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
+          /*
+          3개의 과정에서 모두 종료 과정으로 넘어가겠다고 하면 넘어감
+          */
+        }
+        break;
+
+      case MISSION_END:
+        if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
+          /*
+          3개의 태스크에서 마무리가 모두 끝나면 완전 종료
+          */
+        }
+        break;
+    }
+    // 주기적으로 상태를 체크하며 업데이트
+    vTaskDelayUntil(&xLastWakeTime, xFreq);
+  }
+}
+
+void TaskDhtRead(void *pvParameters __attribute__((unused)) ) {
+  // (void) pvParameters;
+  TickType_t xLastWakeTime;
+  const TickType_t xFreq = pdMS_TO_TICKS(2000);
+  xLastWakeTime = xTaskGetTickCount();
+  for (;;) {
+    if (xSemaphoreTake(xSemaphore, (TickType_t)10) == pdTRUE) {
+      if (t_valid = dht::check(tempValue, humiValue)) {
+        Serial.print("tempValue : ");
+        Serial.println(tempValue);
+        Serial.print("humiValue : ");
+        Serial.println(humiValue);
+      }
+      xSemaphoreGive(xSemaphore);
+    }
+    Serial.println(t_valid);
+    // Serial.println(memoryPrint());
+    vTaskDelayUntil(&xLastWakeTime, xFreq);
+  }
+}
 
 // void TaskDwinWrite(void *pvParameters __attribute__((unused)) ) {
 //   // (void) pvParameters;
