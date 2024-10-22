@@ -4,13 +4,13 @@
 
 void setup() {
   Serial.begin(115200);
-  ACAN_ESP32_Settings settings(125000UL);
+  ACAN_ESP32_Settings settings(500000UL);
 
   //settings.mRequestedCANMode = ACAN_ESP32_Settings::LoopBackMode;
   
   //Default Tx:GPIO4, Rx:GPIO5
-  settings.mRxPin = GPIO_NUM_18;
-  settings.mTxPin = GPIO_NUM_19;
+  settings.mRxPin = GPIO_NUM_19;
+  settings.mTxPin = GPIO_NUM_18;
 
   const uint32_t ret = ACAN_ESP32::can.begin(settings) ;
   
@@ -48,16 +48,16 @@ void loop() {
   // Serial.println("fuck");
   //캔통신으로 수신된 데이터가 있는가?
   if(ACAN_ESP32::can.receive(frame)) {
-    Serial.println("suck");
+    Serial.println("RCV");
     //frame.ext : ID종류가 29bit인가? 아니면 11bit인가
     //frame.rtr : 리모트인가? 아니면 데이터인가
     //frame.id : 아이디
     //frame.len : 수신데이터 길이
     //frame.data : 수신데이터(배열)
     if(frame.ext){
-      Serial.println("EXTENDED ID입니다!");
+      Serial.println("EXTENDED ID");
     }else{
-      Serial.println("STANDARD ID입니다!");
+      Serial.println("STANDARD ID");
     }
 
     if(frame.rtr){
@@ -66,14 +66,14 @@ void loop() {
       Serial.println("RTR : DATA!");
     }
 
-    Serial.print("수신받은 ID : ");
+    Serial.print("received ID : ");
     Serial.println(frame.id,HEX);
 
-    Serial.print("데이터길이 : ");
+    Serial.print("data len : ");
     Serial.println(frame.len);
 
     //결과를 16진수로출력
-    Serial.print("데이터를 16진수로 표현 : ");
+    Serial.print("HEX DATA : ");
     for(int i = 0;i<frame.len;i++){
       Serial.print(frame.data[i],HEX);
       Serial.print(", ");
@@ -81,11 +81,12 @@ void loop() {
     Serial.println();
 
     //결과를 아스키코드로출력
-    Serial.print("데이터를 16진수로 표현 : ");
+    Serial.print("    DATA : ");
     for(int i = 0;i<frame.len;i++){
-      Serial.print((char)frame.data[i]);
+      Serial.print(frame.data[i]);
       Serial.print(", ");
     }
     Serial.println();
-  }  
+  } 
+  
 }

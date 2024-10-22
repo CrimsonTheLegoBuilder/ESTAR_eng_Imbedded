@@ -10,7 +10,8 @@ void setup() {
   Serial.begin(115200); //나 컴퓨터와 USB로 통신할거야!
   //캔통신의 통신속도를 결정하는 부분
   //125k(125000UL), 250k(250000UL), 500k(500000UL)
-  ACAN_ESP32_Settings settings(125000UL); //125k
+  // ACAN_ESP32_Settings settings(500000UL); //125k
+  ACAN_ESP32_Settings settings(500000UL); //125k
 
   //실제로 통신할거기 때문에 루프백모드를 설정하면 안된다
   //settings.mRequestedCANMode = ACAN_ESP32_Settings::LoopBackMode;
@@ -53,10 +54,11 @@ void setup() {
 }
 
 void loop() {
+  //Serial.println("loop");
   //이거는 하나 필요함!
   CANMessage frame;
 
-  if(millis() - t > 1000){
+  if(millis() - t > 100){
     t = millis();
     //1000ms마다 이부분이 반복실행된다!
 
@@ -65,24 +67,67 @@ void loop() {
     //0x000(0) ~ 7FF(2,047)
     //extended일때(29bit)
     //0x000(0) ~ 0x1FFFFFFF(536,870,911)
-    frame.id = 0x123;
+    frame.id = 0x200;
+    // frame.id = 0x601;
     frame.rtr = 0; //확실히 이게 무슨 기능을 하는지는 모르겠음!
     frame.len = 8; //내가 보낼 데이터의 길이
 
-    frame.data[0] = 'N';
-    frame.data[1] = 'O';
-    frame.data[2] = 'C';
-    frame.data[3] = 'K';
-    frame.data[4] = 'A';
-    frame.data[5] = 'N';
-    frame.data[6] = 'D';
-    frame.data[7] = 'A';
+    frame.data[0] = 0x2B;
+    frame.data[1] = 0x02;
+    frame.data[2] = 0x00;
+    frame.data[3] = 0x00;
+    frame.data[4] = 0x00;
+    frame.data[5] = 0x00;
+    frame.data[6] = 0x00;
+    frame.data[7] = 0x00;
 
     //전송
     if (ACAN_ESP32::can.tryToSend(frame)) {
       //성공 
       Serial.println("전송에 성공했습니다");
-    }   
+    }
+
   }
-  
+
+  //   if(ACAN_ESP32::can.receive(frame)) {
+  //   Serial.println("RCV");
+  //   //frame.ext : ID종류가 29bit인가? 아니면 11bit인가
+  //   //frame.rtr : 리모트인가? 아니면 데이터인가
+  //   //frame.id : 아이디
+  //   //frame.len : 수신데이터 길이
+  //   //frame.data : 수신데이터(배열)
+  //   if(frame.ext){
+  //     Serial.println("EXTENDED ID");
+  //   }else{
+  //     Serial.println("STANDARD ID");
+  //   }
+
+  //   if(frame.rtr){
+  //     Serial.println("RTR : REMOTE!");
+  //   }else{
+  //     Serial.println("RTR : DATA!");
+  //   }
+
+  //   Serial.print("received ID : ");
+  //   Serial.println(frame.id,HEX);
+
+  //   Serial.print("data len : ");
+  //   Serial.println(frame.len);
+
+  //   //결과를 16진수로출력
+  //   Serial.print("HEX DATA : ");
+  //   for(int i = 0;i<frame.len;i++){
+  //     Serial.print(frame.data[i],HEX);
+  //     Serial.print(", ");
+  //   }
+  //   Serial.println();
+
+  //   //결과를 아스키코드로출력
+  //   Serial.print("    DATA : ");
+  //   for(int i = 0;i<frame.len;i++){
+  //     Serial.print(frame.data[i]);
+  //     Serial.print(", ");
+  //   }
+  //   Serial.println();
+  // }  
 }
