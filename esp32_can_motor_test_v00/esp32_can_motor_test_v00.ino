@@ -72,11 +72,11 @@ void loop() {
     frame.rtr = 0; //확실히 이게 무슨 기능을 하는지는 모르겠음!
     frame.len = 8; //내가 보낼 데이터의 길이
 
-    frame.data[0] = 0x2B;
-    frame.data[1] = 0x02;
+    frame.data[0] = 0x00;
+    frame.data[1] = 0x00;
     frame.data[2] = 0x00;
     frame.data[3] = 0x00;
-    frame.data[4] = 0x00;
+    frame.data[4] = 0x50;
     frame.data[5] = 0x00;
     frame.data[6] = 0x00;
     frame.data[7] = 0x00;
