@@ -56,7 +56,7 @@ void loop() {
   //이거는 하나 필요함!
   CANMessage frame;
 
-  if(millis() - t > 1000){
+  if(millis() - t > 500){
     t = millis();
     //1000ms마다 이부분이 반복실행된다!
 
@@ -65,18 +65,18 @@ void loop() {
     //0x000(0) ~ 7FF(2,047)
     //extended일때(29bit)
     //0x000(0) ~ 0x1FFFFFFF(536,870,911)
-    frame.id = 0x123;
+    frame.id = 0x234;
     frame.rtr = 0; //확실히 이게 무슨 기능을 하는지는 모르겠음!
     frame.len = 8; //내가 보낼 데이터의 길이
 
-    frame.data[0] = 'N';
-    frame.data[1] = 'O';
-    frame.data[2] = 'C';
-    frame.data[3] = 'K';
-    frame.data[4] = 'A';
-    frame.data[5] = 'N';
-    frame.data[6] = 'D';
-    frame.data[7] = 'A';
+    frame.data[0] = 'E';
+    frame.data[1] = 'J';
+    frame.data[2] = 'E';
+    frame.data[3] = 'J';
+    frame.data[4] = 'E';
+    frame.data[5] = 'J';
+    frame.data[6] = 'E';
+    frame.data[7] = 'J';
 
     //전송
     if (ACAN_ESP32::can.tryToSend(frame)) {
