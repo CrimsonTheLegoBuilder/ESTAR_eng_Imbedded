@@ -6,12 +6,18 @@
 
 #define LF 26 // input pin Neopixel is attached to
 #define LR 27 // input pin Neopixel is attached to
+#define RF 33 // input pin Neopixel is attached to
+#define RR 25 // input pin Neopixel is attached to
 #define NLF 6
 #define NLR 1
+#define NRF 6
+#define NRR 6
 #define NUM_LEDS 10
 
-static CRGB L_F[NUM_LEDS];  // 첫 번째 스트립의 LED 배열
-static CRGB L_R[NUM_LEDS];  // 두 번째 스트립의 LED 배열
+static CRGB L_F[NUM_LEDS];
+static CRGB L_R[NUM_LEDS];
+static CRGB R_F[NUM_LEDS];
+static CRGB R_R[NUM_LEDS];
 
 struct Strip {
   int f, r;

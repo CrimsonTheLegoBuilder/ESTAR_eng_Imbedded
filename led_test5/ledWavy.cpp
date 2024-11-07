@@ -4,8 +4,10 @@
 #include "ledWavy.h"
 
 void Strip::led_setup() {
-  FastLED.addLeds<NEOPIXEL, LF>(L_F, NLF); // 첫 번째 스트립 초기화
-  FastLED.addLeds<NEOPIXEL, LR>(L_R, NLR); // 두 번째 스트립 초기화
+  FastLED.addLeds<NEOPIXEL, LF>(L_F, NLF);
+  FastLED.addLeds<NEOPIXEL, LR>(L_R, NLR);
+  FastLED.addLeds<NEOPIXEL, RF>(R_F, NRF);
+  FastLED.addLeds<NEOPIXEL, RR>(R_R, NRR);
   nf = NLF; 
   nr = NLR;
   cnt = 20;
@@ -46,7 +48,7 @@ void Strip::wavy_analog(int x) {
       //Serial.print(bb);
       //Serial.print(" ");
       if (j < nf) L_F[j] = CRGB(rr, gg, bb);
-      else L_R[num_pix - j - 1] = CRGB(bb, gg, rr);
+      else L_R[num_pix - j - 1] = CRGB(rr, bb, gg);
     }
     //Serial.println(" ");
     FastLED.show();
@@ -61,50 +63,4 @@ void Strip::wavy() {
   pt = (pt + 1) % interval;
 }
 
-// void wave_seg(int J, int I) {
-//   for (int j = 0; j < NUMPIXELS; j++) {
-//     if (j == J) pixels.setPixelColor(j, pixels.Color((I == 1) * 255, (I == 0) * 255, (I == 2) * 255));
-//     else pixels.setPixelColor(j, pixels.Color(0, 0, 0));
-//     pixels.show();
-//   }
-//   delay(100);
-// }
-// void wave() {
-//   static int J_ = 0;
-//   for (int i = 0; i < 3; i++) wave_seg(J_, i);
-//   J_ = (J_ + 1) % NUMPIXELS;
-// }
-// uint8_t set_brightness(int j, int x, int b) {
-//   int ipp = (j - 2 + NUMPIXELS * 3) % (NUMPIXELS * 3);
-//   int ip = (j - 1 + NUMPIXELS * 3) % (NUMPIXELS * 3);
-//   int i0 = j;
-//   int in = (j + 1) % (NUMPIXELS * 3);
-//   int inn = (j + 2) % (NUMPIXELS * 3);
-//   // Serial.print(ipp);
-//   // Serial.print(" ");
-//   // Serial.print(ip);
-//   // Serial.print(" ");
-//   // Serial.print(i0);
-//   // Serial.print(" ");
-//   // Serial.print(in);
-//   // Serial.print(" ");
-//   // Serial.print(inn);
-//   // Serial.print(" ");
-//   // Serial.print(ipp % INTERVAL);
-//   // Serial.print(" ");
-//   // Serial.print(ip % INTERVAL);
-//   // Serial.print(" ");
-//   // Serial.print(i0 % INTERVAL);
-//   // Serial.print(" ");
-//   // Serial.print(in % INTERVAL);
-//   // Serial.print(" ");
-//   // Serial.print(inn % INTERVAL);
-//   // Serial.println(" ");
-//   if ((i0 % INTERVAL) == x) return 255 - (b * 10);
-//   if ((ip % INTERVAL) == x) return 50 + (b * 5);
-//   if ((in % INTERVAL) == x) return 150 - (b * 5);
-//   if ((ipp % INTERVAL) == x) return 10 + (b * 2);
-//   if ((inn % INTERVAL) == x) return 50 - (b * 2);
-//   else return 0;
-// }
 #endif
