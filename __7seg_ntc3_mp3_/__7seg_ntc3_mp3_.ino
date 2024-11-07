@@ -2,6 +2,7 @@
 #include "_7seg.h"
 #include "_thermo.h"
 #include "_button.h"
+#include "DFRobotDFPlayerMini.h"
 
 TwoSeg S;
 Thermo T(B_pin, R_pin, W_pin);
@@ -14,11 +15,32 @@ int cnt = 0;
 int prev_state = 0;
 int state = 0;
 int change = 0;
+DFRobotDFPlayerMini myDFPlayer;
 
 void setup() {
-  Serial.begin(9600); 
+  Serial.begin(9600);
+  Serial3.begin(9600);
   pinMode(13, OUTPUT);
+  if (!myDFPlayer.begin(Serial3), false) {
+    Serial.println(F("Unable to begin:"));
+    Serial.println(F("1.Please recheck the connection!"));
+    Serial.println(F("2.Please insert the SD card!"));
+    while(true);
+  }
+  Serial.println(F("DFPlayer Mini online."));
+  myDFPlayer.setTimeOut(500);
+  myDFPlayer.volume(15);
+  myDFPlayer.EQ(DFPLAYER_EQ_BASS);
+  Serial.println(F("init done."));
+  //myDFPlayer.playLargeFolder(1, 1);
 }
+
+void music_play(int fold, int num) {
+  // myDFPlayer.playFolder(fold, num);
+  myDFPlayer.playLargeFolder(fold, num);
+  //delay(1000000);
+}
+
 void loop() {
   // put your main code here, to run repeatedly:
   float t = T.read_temper(1);
@@ -42,12 +64,15 @@ void loop() {
   Serial.println(c5);
   if (c1 == -1 || c2 == -1 || c3 == -1 || c4 == -1 || c5 == -1) {
     digitalWrite(13, HIGH);
+    music_play(1, 3);
     delay(10);
     digitalWrite(13, LOW);
   }
   if (c1 == 2 || c2 == 2 || c3 == 2 || c4 == 2 || c5 == 2) {
     if (!change) {
       state = (state + 1) % 2;
+      music_play(1, 4);
+      delay(10);
       change = 1;
     }
   }

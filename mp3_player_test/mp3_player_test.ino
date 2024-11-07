@@ -2,7 +2,7 @@
 #include "SoftwareSerial.h"
 #include "DFRobotDFPlayerMini.h"
 
-SoftwareSerial mySoftwareSerial(10, 11); // 소프트웨어 시리얼 용 핀 지정
+SoftwareSerial mySoftwareSerial(14, 15); // 소프트웨어 시리얼 용 핀 지정
 DFRobotDFPlayerMini myDFPlayer;              // 객체 생성
 void printDetail(uint8_t type, int value) {
   Serial.println(type);
