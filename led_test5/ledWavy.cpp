@@ -56,9 +56,6 @@ void Strip::wavy_analog(int x) {
   }
 }
 void Strip::wavy() {
-  // Serial.println(" ");
-  // Serial.print(J_);
-  // Serial.println(" ");
   wavy_analog(pt);
   pt = (pt + 1) % interval;
 }

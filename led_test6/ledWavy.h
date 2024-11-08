@@ -14,6 +14,9 @@
 #define NRR 6
 #define NUM_LEDS 10
 
+#define RIGHT 1
+#define LEFT 2
+
 static CRGB L_F[NUM_LEDS];
 static CRGB L_R[NUM_LEDS];
 static CRGB R_F[NUM_LEDS];
@@ -25,10 +28,15 @@ struct Strip {
   // Adafruit_NeoPixel F, R;
   int cnt, interval, pt;
   void led_setup();
-  void on_();
+  void on_(int n);
+  void blink();
   uint8_t set_brightness(int j, int x, int b);
   void wavy_analog(int x);
-  void wavy();
+  void wavy_analog_dir(int x, int dir);
+  void wavy(int dir);
+  void direction_signal_dir(int x, int dir);
+  void direction_signal(int dir);
+  void run(int m);
 };
 
 #endif
