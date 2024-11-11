@@ -41,4 +41,7 @@
 #define L7 42
 #define L8 43
 
+#define SETTING_MODE 0
+#define NORMAL_MODE 1
+
 #endif
