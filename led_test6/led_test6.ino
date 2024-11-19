@@ -57,6 +57,7 @@ void loop() {
     switch (frame.id) {
       case 0x400:
         mode = 0;
+        //비상등 켜기
         break;
       case 0x401:
         mode = 1;
@@ -73,7 +74,7 @@ void loop() {
     }
   }
   //mode = 3;
-  L.run(mode);
+  L.run(3);
   //해당 모드로 동작하는 상태 머신이 필요
 
 }  

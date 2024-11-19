@@ -46,7 +46,7 @@ void select_sensor(int channel) {
     digitalWrite(controlPin[i], !!(channel & (1 << i))); 
     //Serial.print(!!(channel & (1 << i)));
   }
-  return; 
+  return;
 }
 
 float detect(int trig) {

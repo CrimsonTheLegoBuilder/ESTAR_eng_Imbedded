@@ -15,7 +15,7 @@ struct Button {
   }
   int read();
   void blink(int x);
-  int check(int n);
+  int check(int& ent_state, int n);
   int run(int& ent_state, int x, int wait = 1000);
 };
 

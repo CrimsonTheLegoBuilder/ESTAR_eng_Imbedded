@@ -45,4 +45,10 @@
 #define STANDBY_MODE 1
 #define DELIVER_MODE 2
 
+#define SZ_SHORT 2000
+#define SZ_TALL 3000
+#define SZ_GRANDE 4000
+#define SZ_VENTI 5000
+#define SZ_TRENTA 6000
+
 #endif
