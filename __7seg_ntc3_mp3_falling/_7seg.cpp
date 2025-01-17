@@ -119,9 +119,9 @@ int TwoSeg::print(int xy) {
   }
   int x = xy / 10;
   int y = xy % 10;
-  if (x > 0) B.print(x);
-  else B.print(-1);
-  A.print(y);
+  if (x > 0) A.print(x);
+  else A.print(-1);
+  B.print(y);
   return 1;
 }
 

@@ -4,10 +4,13 @@
 //#include <Adafruit_NeoPixel.h> 
 #include <FastLED.h>
 
-#define LF 26 // input pin Neopixel is attached to
-#define LR 27 // input pin Neopixel is attached to
-#define RF 33 // input pin Neopixel is attached to
-#define RR 25 // input pin Neopixel is attached to
+#define LF 2 // input pin Neopixel is attached to
+#define LR 26 // input pin Neopixel is attached to
+#define RF 25 // input pin Neopixel is attached to
+#define RR 12 // input pin Neopixel is attached to
+#define FRONT 32 // input pin Neopixel is attached to
+#define REAR 33 // input pin Neopixel is attached to
+
 #define NLF 6
 #define NLR 6
 #define NRF 6

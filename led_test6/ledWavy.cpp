@@ -108,12 +108,12 @@ void Strip::direction_signal_dir(int x, int dir) {
       int rr = set_brightness(r, x, i);
       int gg = set_brightness(g, x, i);
       int bb = set_brightness(b, x, i);
-      //Serial.print(rr);
-      //Serial.print(" ");
-      //Serial.print(gg);
-      //Serial.print(" ");
-      //Serial.print(bb);
-      //Serial.print(" ");
+      // Serial.print(rr);
+      // Serial.print(" ");
+      // Serial.print(gg);
+      // Serial.print(" ");
+      // Serial.print(bb);
+      // Serial.print(" ");
       if (dir == LEFT) {
         L_F[j] = L_R[j] = CRGB(rr, gg, bb);
         R_F[j] = R_R[j] = CRGB::Black;
@@ -125,7 +125,7 @@ void Strip::direction_signal_dir(int x, int dir) {
     }
     //Serial.println(" ");
     FastLED.show();
-    // delay(5);
+    delay(5);
   }
 }
 void Strip::direction_signal(int dir) {

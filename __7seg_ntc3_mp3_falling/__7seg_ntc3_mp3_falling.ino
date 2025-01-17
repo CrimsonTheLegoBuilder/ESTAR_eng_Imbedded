@@ -46,6 +46,7 @@ void setup() {
   state = 1;
   pinMode(L7, OUTPUT);
   pinMode(L8, OUTPUT);
+  S.print(-1);
 }
 
 // void music_play(int fold, int num) {
@@ -66,6 +67,7 @@ void loop() {
   if (millis() - tmp_time >= 500) {
   float t = T.read_temper(1);
   S.print(t);
+  Serial.print("t: ");
   Serial.println(t);
   Serial.println(state == STANDBY_MODE ? "STANDBY" : state == SETTING_MODE ? "SETTING" : "DELIVER");
     tmp_time = millis();
